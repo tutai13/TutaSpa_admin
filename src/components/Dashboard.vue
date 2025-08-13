@@ -84,7 +84,7 @@
             </div>
             <div class="stat-info text-white">
               <div class="stat-number fs-2 fw-bold mb-1">
-                {{ danhGia }}
+                {{ danhGia }}/5
               </div>
               <div class="stat-label fs-6 fw-medium">Đánh giá trung bình</div>
             </div>
@@ -317,7 +317,7 @@ import Chart from "chart.js/auto";
 
 // Stats
 const lichHen = ref(0);
-const danhGia = ref("4.7 / 5");
+const danhGia = ref(0);
 const dvHoanThanh = ref(0);
 const doanhThu = ref(0);
 
@@ -443,7 +443,7 @@ const createChart = (data) => {
 
     // Format value display
     if (item.value >= 1000000) {
-      valueLabel.textContent = (item.value / 1000000).toFixed(1) + "M";
+      valueLabel.textContent = (item.value / 1000000).toFixed(3) + "K";
     } else if (item.value >= 1000) {
       valueLabel.textContent = (item.value / 1000).toFixed(0) + "K";
     } else {
@@ -924,7 +924,8 @@ onMounted(async () => {
         "/ThongKe/dvHoanThanhToday"
       );
       dvHoanThanh.value = serviceCompletedData.soLuotDichVu || 0;
-
+      const danhgia = await apiClient.get("/DanhGia/trungbinh-trongso");
+      danhGia.value = danhgia || 0;
       await getLichHenHomNay();
     } catch (statsError) {
       console.warn("Error loading stats, using defaults:", statsError);
