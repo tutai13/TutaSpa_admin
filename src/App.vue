@@ -274,8 +274,9 @@ function toggleNotifications() {
 
 async function Logout() {
   try {
+        await authAPI.logout();
     authStore.logout();
-    await authAPI.logout();
+
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user-info");
     router.push("/login");
