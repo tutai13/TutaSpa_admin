@@ -592,7 +592,18 @@ const taoMaChuyenKhoan = async () => {
 const layDanhSach = async () => {
   try {
     const resDL = await apiClient.get("/DatLich");
-    danhSachDatLich.value = resDL;
+    const today = new Date().toISOString().split("T")[0];
+    danhSachDatLich.value = resDL
+      .filter((item) => {
+        const ngayItem = new Date(item.thoiGian).toISOString().split("T")[0];
+        return ngayItem === today;
+      })
+      .sort((a, b) => {
+        if (a.daThanhToan !== b.daThanhToan) {
+          return a.daThanhToan ? 1 : -1;
+        }
+        return new Date(a.thoiGian) - new Date(b.thoiGian);
+      });
     const resDV = await apiClient.get("/DichVu");
     dichVus.value = resDV;
     const resSP = await apiClient.get("/Product");
@@ -724,7 +735,15 @@ const huySua = () => {
   soDienThoai.value = "";
   ghiChu.value = "";
 };
-
+const doiTrangThai = async (id) => {
+  try {
+    const res = await apiClient.put(`/DatLich/doitrangthai/${id}`);
+    layDanhSach();
+  } catch (err) {
+    alert("Lỗi khi đổi trạng thái!");
+    console.error(err);
+  }
+};
 const apDungMaGiamGia = async () => {
   const code = maGiamGia.value.trim().toUpperCase();
   giamGia.value = 0;

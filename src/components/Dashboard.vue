@@ -1,9 +1,12 @@
 <template>
   <div class="container-fluid">
     <!-- Stat Cards -->
-    <div class="row g-3 mb-4">
+    <div
+      class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3"
+      style="margin-bottom: 15px"
+    >
       <!-- Dịch vụ hoàn thành -->
-      <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="col">
         <div
           class="card h-100 border-0 shadow-lg stat-card"
           style="
@@ -18,7 +21,9 @@
         >
           <div class="progress-bar"></div>
           <div class="card-body d-flex align-items-center p-4">
-            <div class="stat-icon me-3">✅</div>
+            <div class="stat-icon me-3">
+              <i class="fas fa-check-circle fa-1x text-white"></i>
+            </div>
             <div class="stat-info text-white">
               <div class="stat-number fs-2 fw-bold mb-1">
                 {{ dvHoanThanh.toLocaleString() }}
@@ -30,7 +35,7 @@
       </div>
 
       <!-- Lịch hẹn hôm nay -->
-      <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="col">
         <div
           class="card h-100 border-0 shadow-lg stat-card"
           style="
@@ -45,7 +50,9 @@
         >
           <div class="progress-bar"></div>
           <div class="card-body d-flex align-items-center p-4">
-            <div class="stat-icon me-3">📅</div>
+            <div class="stat-icon me-3">
+              <i class="fas fa-calendar-day fa-1x text-white"></i>
+            </div>
             <div class="stat-info text-white">
               <div class="stat-number fs-2 fw-bold mb-1">
                 {{ lichHen.toLocaleString() }}
@@ -57,7 +64,7 @@
       </div>
 
       <!-- Đánh giá trung bình -->
-      <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="col">
         <div
           class="card h-100 border-0 shadow-lg stat-card"
           style="
@@ -72,7 +79,9 @@
         >
           <div class="progress-bar"></div>
           <div class="card-body d-flex align-items-center p-4">
-            <div class="stat-icon me-3">⭐</div>
+            <div class="stat-icon me-3">
+              <i class="fas fa-star fa-1x text-white"></i>
+            </div>
             <div class="stat-info text-white">
               <div class="stat-number fs-2 fw-bold mb-1">
                 {{ danhGia }}
@@ -84,7 +93,7 @@
       </div>
 
       <!-- Doanh thu hôm nay -->
-      <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="col">
         <div
           class="card h-100 border-0 shadow-lg stat-card"
           style="
@@ -99,7 +108,9 @@
         >
           <div class="progress-bar"></div>
           <div class="card-body d-flex align-items-center p-4">
-            <div class="stat-icon me-3">💵</div>
+            <div class="stat-icon me-3">
+              <i class="fas fa-hand-holding-usd fa-1x text-white"></i>
+            </div>
             <div class="stat-info text-white">
               <div class="stat-number fs-2 fw-bold mb-1">
                 {{ doanhThu.toLocaleString() }} đ
@@ -111,7 +122,7 @@
       </div>
     </div>
 
-    <!-- Revenue Chart -->
+    <!-- Revenue Chart and Appointment List -->
     <div class="row">
       <div class="col-9">
         <div
@@ -164,33 +175,67 @@
           </div>
         </div>
       </div>
-      <div class="col-3">
+      <div class="col-lg-3 col-md-6 col-sm-12">
         <div
-          class="card border-0 shadow-lg"
-          style="border-radius: 20px; overflow: hidden"
+          class="card border-0 shadow-lg h-100"
+          style="border-radius: 20px; overflow: hidden; font-size: 1.1em"
         >
-          <div class="lich-hen-hom-nay p-4">
-            <h4>📅 Lịch Hẹn Hôm Nay</h4>
+          <!-- Header -->
+          <div
+            class="card-header bg-light border-0 py-3 px-4 d-flex align-items-center"
+          >
+            <h5 class="mb-0 fw-bold text-primary">
+              <span class="me-2">📅</span> Lịch Hẹn Hôm Nay
+            </h5>
+          </div>
+
+          <!-- Body -->
+          <div
+            class="card-body p-4"
+            style="overflow-y: auto; overflow-x: hidden; max-height: 430px"
+          >
+            <!-- Nếu không có lịch -->
             <div
-              v-for="lich in lichHenHienThi"
-              :key="lich.datLichID"
-              class="lich-item"
+              v-if="lichHenHienThi.length === 0"
+              class="text-center text-muted py-5"
             >
-              <div
-                class="lich-icon"
-                :style="{ backgroundColor: getColor(lich) }"
-              ></div>
-              <div class="lich-info">
-                <div class="lich-ten">
-                  {{ lich.soDienThoai }}
+              <i class="fas fa-calendar-times fa-3x mb-3"></i>
+              <p class="mb-0">Không có lịch hẹn hôm nay</p>
+            </div>
+
+            <!-- Danh sách lịch hẹn -->
+            <div v-else class="list-group list-group-flush">
+              <a
+                v-for="lich in lichHenHienThi"
+                :key="lich.datLichID"
+                href="#"
+                class="list-group-item list-group-item-action rounded-3 mb-3 shadow-sm"
+                style="border-left: 5px solid transparent; transition: all 0.3s"
+                :style="{ borderLeftColor: getColor(lich) }"
+              >
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="flex-grow-1">
+                    <!-- Giờ + SĐT trên cùng 1 hàng -->
+                    <div
+                      class="d-flex justify-content-between fw-bold text-dark flex-wrap"
+                    >
+                      <span>
+                        <i class="far fa-clock me-1 text-primary"></i>
+                        {{ formatGio(lich.thoiGian) }} -
+                        {{ tinhGioKetThuc(lich) }}
+                      </span>
+                      <span>
+                        <i class="fas fa-phone-alt me-1 text-success"></i>
+                        {{ lich.soDienThoai }}
+                      </span>
+                    </div>
+                    <!-- Tên dịch vụ -->
+                    <div class="small text-secondary mt-1">
+                      {{ getTenDichVu(lich) }}
+                    </div>
+                  </div>
                 </div>
-                <div class="lich-dichvu">
-                  {{ getTenDichVu(lich) }}
-                </div>
-                <div class="lich-thoigian">
-                  {{ formatGio(lich.thoiGian) }} - {{ tinhGioKetThuc(lich) }}
-                </div>
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -231,7 +276,7 @@
         </div>
       </div>
       <div class="col-6">
-        <div
+        <!-- <div
           class="card border-0 shadow-lg"
           style="border-radius: 20px; overflow: hidden"
         >
@@ -259,7 +304,7 @@
               <p>Không có dữ liệu sản phẩm để hiển thị</p>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -290,12 +335,8 @@ const serviceData = ref([]);
 let chartInstance = null;
 let pieChartInstance = null;
 
-// Missing functions that seem to be used in template
+// Appointment list
 const lichHenHienThi = ref([]);
-const getColor = (lich) => "#4285f4";
-const getTenDichVu = (lich) => lich.tenDichVu || "";
-const formatGio = (time) => time || "";
-const tinhGioKetThuc = (lich) => "";
 
 // Handle hover effect for stat cards
 const handleHover = (event, isHover) => {
@@ -324,7 +365,6 @@ const formatDataForChart = (data) => {
       value: Number(item.value || item.amount || item.total || 0),
     }));
   } else if (typeof data === "object") {
-    // If data is an object, convert to array
     formattedData = Object.keys(data).map((key) => ({
       x: key,
       value: Number(data[key] || 0),
@@ -480,7 +520,6 @@ const loadChartData = async (timeRange) => {
       console.log("API Response:", data);
     } catch (apiError) {
       console.warn("API failed, using mock data:", apiError);
-      // Use mock data if API fails
       data =
         timeRange === "thang"
           ? mockChartData
@@ -495,7 +534,6 @@ const loadChartData = async (timeRange) => {
 
     if (formattedData.length > 0) {
       await nextTick();
-      // Add delay to ensure DOM is ready
       setTimeout(() => {
         createChart(formattedData);
       }, 100);
@@ -507,7 +545,6 @@ const loadChartData = async (timeRange) => {
     console.error("Error loading chart data:", error);
     debugInfo.value = `Error: ${error.message}`;
 
-    // Fallback to mock data
     const formattedData = formatDataForChart(mockChartData);
     chartData.value = formattedData;
 
@@ -536,7 +573,6 @@ const loadServiceData = async () => {
     const response = await apiClient.get("/ThongKe/SoLuongDichVu");
     console.log("Service API Response:", response);
 
-    // API returns array directly based on your example
     if (Array.isArray(response) && response.length > 0) {
       serviceData.value = response;
     } else {
@@ -552,7 +588,6 @@ const loadServiceData = async () => {
     }
   } catch (error) {
     console.error("Error loading service data:", error);
-    // Use mock data as fallback
     serviceData.value = mockServiceData;
     await nextTick();
     setTimeout(() => {
@@ -577,7 +612,6 @@ const createPieChart = () => {
     return;
   }
 
-  // Destroy existing chart
   if (pieChartInstance) {
     pieChartInstance.destroy();
   }
@@ -654,147 +688,142 @@ const createPieChart = () => {
   console.log("Pie chart created successfully");
 };
 
-// Thêm biến cho phần sản phẩm
+// Product pie chart variables
 const productPieChart = ref(null);
-const productData = ref([]);
+//const productData = ref([]);
 let productPieChartInstance = null;
 const isLoadingProduct = ref(false);
 
 // Load product data for pie chart
-const loadProductData = async () => {
-  console.log("Loading product data...");
+// const loadProductData = async () => {
+//   console.log("Loading product data...");
 
-  try {
-    isLoadingProduct.value = true;
+//   try {
+//     isLoadingProduct.value = true;
 
-    const response = await apiClient.get("/ThongKe/SoLuongSanPham");
-    console.log("Product API Response:", response);
+//     const response = await apiClient.get("/ThongKe/SoLuongSanPham");
+//     console.log("Product API Response:", response);
 
-    // API returns array directly based on your example
-    if (Array.isArray(response) && response.length > 0) {
-      // Tính tổng số lượng
-      const total = response.reduce((sum, item) => sum + item.soLuong, 0);
-      
-      // Thêm phần trăm
-      productData.value = response.map(item => ({
-        productName: item.productName,
-        soLuong: item.soLuong,
-        phanTram: total > 0 ? parseFloat(((item.soLuong / total) * 100).toFixed(2)) : 0
-      }));
-    } else {
-      console.warn("No product data received, using mock data");
-      productData.value = mockProductData; // Bạn có thể thêm mock data nếu cần
-    }
+//     if (Array.isArray(response) && response.length > 0) {
+//       const total = response.reduce((sum, item) => sum + item.soLuong, 0);
+//       productData.value = response.map((item) => ({
+//         productName: item.productName,
+//         soLuong: item.soLuong,
+//         phanTram:
+//           total > 0 ? parseFloat(((item.soLuong / total) * 100).toFixed(2)) : 0,
+//       }));
+//     } else {
+//       console.warn("No product data received, using mock data");
+//       productData.value = mockProductData || [];
+//     }
 
-    if (productData.value.length > 0) {
-      await nextTick();
-      setTimeout(() => {
-        createProductPieChart();
-      }, 100);
-    }
-  } catch (error) {
-    console.error("Error loading product data:", error);
-    // Use mock data as fallback
-    productData.value = mockProductData || [];
-    await nextTick();
-    setTimeout(() => {
-      createProductPieChart();
-    }, 100);
-  } finally {
-    isLoadingProduct.value = false;
-  }
-};
+//     if (productData.value.length > 0) {
+//       await nextTick();
+//       setTimeout(() => {
+//         createProductPieChart();
+//       }, 100);
+//     }
+//   } catch (error) {
+//     console.error("Error loading product data:", error);
+//     productData.value = mockProductData || [];
+//     await nextTick();
+//     setTimeout(() => {
+//       createProductPieChart();
+//     }, 100);
+//   } finally {
+//     isLoadingProduct.value = false;
+//   }
+// };
 
 // Create product pie chart
-const createProductPieChart = () => {
-  console.log("Creating product pie chart with data:", productData.value);
+// const createProductPieChart = () => {
+//   console.log("Creating product pie chart with data:", productData.value);
 
-  if (!productPieChart.value) {
-    console.error("Product pie chart canvas not found");
-    return;
-  }
+//   if (!productPieChart.value) {
+//     console.error("Product pie chart canvas not found");
+//     return;
+//   }
 
-  if (!productData.value || productData.value.length === 0) {
-    console.warn("No product data for pie chart");
-    return;
-  }
+//   if (!productData.value || productData.value.length === 0) {
+//     console.warn("No product data for pie chart");
+//     return;
+//   }
 
-  // Destroy existing chart
-  if (productPieChartInstance) {
-    productPieChartInstance.destroy();
-  }
+//   if (productPieChartInstance) {
+//     productPieChartInstance.destroy();
+//   }
 
-  const ctx = productPieChart.value.getContext("2d");
+//   const ctx = productPieChart.value.getContext("2d");
 
-  productPieChartInstance = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: productData.value.map((item) => item.productName),
-      datasets: [
-        {
-          data: productData.value.map((item) => item.phanTram),
-          backgroundColor: [
-            "#FF6B6B",
-            "#4ECDC4",
-            "#45B7D1",
-            "#96CEB4",
-            "#FFEEAD",
-            "#D4A5A5",
-            "#95E1D3",
-            "#F38BA8",
-          ],
-          borderWidth: 2,
-          borderColor: "#fff",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "right",
-          labels: {
-            font: {
-              size: 12,
-              family: "Arial",
-              weight: "500",
-            },
-            color: "#333",
-            padding: 15,
-            usePointStyle: true,
-          },
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => {
-              const label = context.label || "";
-              const value = context.parsed || 0;
-              const dataItem = productData.value[context.dataIndex];
-              return [
-                `${label}`,
-                `Số lượng: ${dataItem.soLuong.toLocaleString()}`,
-                `Tỷ lệ: ${value.toFixed(2)}%`,
-              ];
-            },
-          },
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          titleColor: "#333",
-          bodyColor: "#666",
-          borderColor: "#ddd",
-          borderWidth: 1,
-        },
-      },
-      animation: {
-        animateScale: true,
-        animateRotate: true,
-        duration: 1000,
-      },
-    },
-  });
+//   productPieChartInstance = new Chart(ctx, {
+//     type: "pie",
+//     data: {
+//       labels: productData.value.map((item) => item.productName),
+//       datasets: [
+//         {
+//           data: productData.value.map((item) => item.phanTram),
+//           backgroundColor: [
+//             "#FF6B6B",
+//             "#4ECDC4",
+//             "#45B7D1",
+//             "#96CEB4",
+//             "#FFEEAD",
+//             "#D4A5A5",
+//             "#95E1D3",
+//             "#F38BA8",
+//           ],
+//           borderWidth: 2,
+//           borderColor: "#fff",
+//         },
+//       ],
+//     },
+//     options: {
+//       responsive: true,
+//       maintainAspectRatio: false,
+//       plugins: {
+//         legend: {
+//           position: "right",
+//           labels: {
+//             font: {
+//               size: 12,
+//               family: "Arial",
+//               weight: "500",
+//             },
+//             color: "#333",
+//             padding: 15,
+//             usePointStyle: true,
+//           },
+//         },
+//         tooltip: {
+//           callbacks: {
+//             label: (context) => {
+//               const label = context.label || "";
+//               const value = context.parsed || 0;
+//               const dataItem = productData.value[context.dataIndex];
+//               return [
+//                 `${label}`,
+//                 `Số lượng: ${dataItem.soLuong.toLocaleString()}`,
+//                 `Tỷ lệ: ${value.toFixed(2)}%`,
+//               ];
+//             },
+//           },
+//           backgroundColor: "rgba(255, 255, 255, 0.95)",
+//           titleColor: "#333",
+//           bodyColor: "#666",
+//           borderColor: "#ddd",
+//           borderWidth: 1,
+//         },
+//       },
+//       animation: {
+//         animateScale: true,
+//         animateRotate: true,
+//         duration: 1000,
+//       },
+//     },
+//   });
 
-  console.log("Product pie chart created successfully");
-};
+//   console.log("Product pie chart created successfully");
+// };
 
 // Watch for data changes
 watch(chartData, (newData) => {
@@ -813,14 +842,70 @@ watch(serviceData, (newData) => {
   }
 });
 
-// Watch for product data changes
-watch(productData, (newData) => {
-  if (newData && newData.length > 0 && productPieChart.value) {
-    nextTick(() => {
-      createProductPieChart();
-    });
+// watch(productData, (newData) => {
+//   if (newData && newData.length > 0 && productPieChart.value) {
+//     nextTick(() => {
+//       createProductPieChart();
+//     });
+//   }
+// });
+
+// Load appointments and sort by time, filter by "Chưa đến"
+const getLichHenHomNay = async () => {
+  try {
+    const res = await apiClient.get("/DatLich");
+    if (Array.isArray(res)) {
+      const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+      lichHenHienThi.value = res
+        .filter(
+          (lich) =>
+            lich.thoiGian.slice(0, 10) === today &&
+            lich.trangThai === "Chưa đến" &&
+            lich.datTruoc == true
+        )
+        .sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian)); // Sort by thoiGian
+    } else {
+      console.error("API response is not an array:", res);
+      lichHenHienThi.value = [];
+    }
+  } catch (err) {
+    console.error("Lỗi khi lấy lịch hẹn:", err);
+    lichHenHienThi.value = [];
   }
-});
+};
+
+// Get color based on status
+const getColor = (lich) => {
+  return lich.trangThai === "Chưa đến" ? "#ff9800" : "#9e9e9e"; // Orange for Chưa đến, gray for others
+};
+
+// Get service names
+const getTenDichVu = (lich) => {
+  return lich.chiTietDichVus.map((dv) => dv.dichVu.tenDichVu).join(", ");
+};
+
+// Format start time
+const formatGio = (isoTime) => {
+  const date = new Date(isoTime);
+  return date.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+// Calculate end time
+const tinhGioKetThuc = (lich) => {
+  const start = new Date(lich.thoiGian);
+  const totalMinutes = lich.chiTietDichVus.reduce(
+    (sum, dv) => sum + dv.dichVu.thoiGian,
+    0
+  );
+  start.setMinutes(start.getMinutes() + totalMinutes);
+  return start.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 // Initialize component
 onMounted(async () => {
@@ -839,15 +924,16 @@ onMounted(async () => {
         "/ThongKe/dvHoanThanhToday"
       );
       dvHoanThanh.value = serviceCompletedData.soLuotDichVu || 0;
+
+      await getLichHenHomNay();
     } catch (statsError) {
       console.warn("Error loading stats, using defaults:", statsError);
-      // Use default values
     }
 
     // Load charts
     await Promise.all([
       loadServiceData(),
-      loadProductData(),
+      //loadProductData(),
       loadChartData(selectedTimeRange.value),
     ]);
   } catch (error) {
@@ -911,7 +997,6 @@ onMounted(async () => {
   border-color: #0d6efd;
 }
 
-/* Custom scrollbar for chart */
 #revenueChart::-webkit-scrollbar {
   height: 8px;
 }
@@ -945,5 +1030,42 @@ onMounted(async () => {
     border-radius: 8px !important;
     margin-bottom: 5px;
   }
+}
+
+.list-group-item {
+  transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.badge {
+  width: 12px;
+  height: 12px;
+}
+
+/* Custom scrollbar for appointment list */
+.card-body {
+  scrollbar-width: thin;
+  scrollbar-color: #0d6efd #f1f1f1;
+}
+
+.card-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.card-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+  background: #0d6efd;
+  border-radius: 10px;
+}
+
+.card-body::-webkit-scrollbar-thumb:hover {
+  background: #0b5ed7;
 }
 </style>
