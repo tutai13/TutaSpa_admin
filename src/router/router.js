@@ -16,6 +16,7 @@ import Banggiadichvu from "../components/Banggiadichvu.vue";
 import Chat from "../components/chat.vue";
 import ThongKe from "../components/ThongKe.vue";
 import ChangePassword from "../components/ChangePassword.vue";
+import ForgotPassword from "../components/ForgotPassword.vue";
 const routes = [
   { path: "/", name: "Dashboard", component: Dashboard },
   { path: "/khuyenMai", name: "khuyenMai", component: khuyenMai },
@@ -29,6 +30,7 @@ const routes = [
   { path: "/categories", name: "LoaiSanPham", component: LoaiSanPham },
   { path: "/chat", name: "Chat", component: Chat },
   { path: "/ThongKe", name: "ThongKe", component: ThongKe },
+   { path: "/forget-password", name: "ForgetPassword", component: ForgotPassword },
   {
     path: "/ChangePassword",
     name: "ChangePassword",
