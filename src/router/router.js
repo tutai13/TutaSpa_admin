@@ -13,7 +13,7 @@ import LoaiSanPham from "../components/LoaiSanPham.vue";
 import SanPham from "../components/sanpham.vue";
 import DanhGiaKhachHang from "../components/DanhGiaKhachHang.vue";
 import Banggiadichvu from "../components/Banggiadichvu.vue";
-import Chat from "../components/Chat.vue";
+import Chat from "../components/chat.vue";
 import ThongKe from "../components/ThongKe.vue";
 import ChangePassword from "../components/ChangePassword.vue";
 const routes = [
