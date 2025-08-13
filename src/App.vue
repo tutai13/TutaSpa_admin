@@ -70,14 +70,6 @@
               </a>
             </li>
             <li>
-              <a
-                class="dropdown-item d-flex align-items-center gap-2 text-secondary"
-                href="/ve-da-dat"
-              >
-                <i class="fas fa-tasks fs-6"></i> My Task
-              </a>
-            </li>
-            <li>
               <a class="btn btn-outline-primary w-100" href="#" @click="Logout">
                 Đăng xuất
               </a>
