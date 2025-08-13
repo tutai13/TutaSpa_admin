@@ -234,7 +234,7 @@
                     <td class="service-time">{{ dv.thoiGian }} phút</td>
                     <td class="service-image">
                       <img 
-                        :src="'https://localhost:7183/images/' + dv.hinhAnh" 
+                        :src="imageUrl + dv.hinhAnh" 
                         class="service-img" 
                         alt="Service image"
                       />
@@ -310,6 +310,8 @@
 import { ref, computed, onMounted } from "vue";
 import apiClient from "../utils/axiosClient";
 import Swal from "sweetalert2";
+
+const imageUrl = import.meta.env.VITE_BASE_URL.replace("/api", "/images/");
 const dichVus = ref([]);
 const loaiDichVus = ref([]);
 const dichVu = ref({
