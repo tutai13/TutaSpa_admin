@@ -167,29 +167,6 @@
             <i class="fa-solid fa-comment"></i>
           </router-link>
         </template>
-
-        <div class="menu-title">APPS</div>
-
-        <!-- Thống kê -->
-        <router-link
-          v-if="authStore.isAdmin || authStore.isManager"
-          to="/apps/ecommerce"
-          class="menu-item"
-          exact-active-class="active"
-          title="Thống kê"
-        >
-          <i class="fas fa-store"></i>
-        </router-link>
-
-        <!-- User Profile -->
-        <router-link
-          to="/apps/profile"
-          class="menu-item"
-          exact-active-class="active"
-          title="User Profile"
-        >
-          <i class="fas fa-user-circle"></i>
-        </router-link>
       </div>
     </aside>
 
