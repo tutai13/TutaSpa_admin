@@ -413,7 +413,7 @@
                 />
                 <div class="product-overlay">
                   <button
-                    @click="editProduct(sp)"
+                    @click="editProduct(sp)"  
                     class="btn btn-sm btn-warning"
                   >
                     <i class="fas fa-edit"></i>

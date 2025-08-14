@@ -140,7 +140,7 @@
                   @click="changeTimeRange('thang')"
                   style="border-radius: 25px 0 0 25px"
                 >
-                  Tháng
+                  Ngày
                 </button>
                 <button
                   type="button"
@@ -149,7 +149,7 @@
                   @click="changeTimeRange('nam')"
                   style="border-radius: 0 25px 25px 0"
                 >
-                  Năm
+                  Tháng
                 </button>
               </div>
             </div>
@@ -242,6 +242,7 @@
       </div>
     </div>
 
+
     <!-- Service Distribution Chart -->
     <div class="row mt-4">
       <div class="col-6">
@@ -276,7 +277,7 @@
         </div>
       </div>
       <div class="col-6">
-        <!-- <div
+        <div
           class="card border-0 shadow-lg"
           style="border-radius: 20px; overflow: hidden"
         >
@@ -304,9 +305,10 @@
               <p>Không có dữ liệu sản phẩm để hiển thị</p>
             </div>
           </div>
-        </div> -->
+        </div>
       </div>
     </div>
+    
   </div>
 </template>
 
@@ -378,54 +380,32 @@ const formatDataForChart = (data) => {
 
 // Create custom bar chart
 const createChart = (data) => {
-  console.log("Creating chart with data:", data);
+  if (!chartContainer.value) return;
+  if (!data || data.length === 0) return;
 
-  if (!chartContainer.value) {
-    console.error("Chart container not found");
-    debugInfo.value = "Chart container not found";
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    console.log("No data available for chart");
-    debugInfo.value = "No data available for chart";
-    return;
-  }
-
-  // Clear previous chart
   chartContainer.value.innerHTML = "";
 
   const maxValue = Math.max(...data.map((d) => d.value));
   const dataLength = data.length;
 
-  const { barWidth, minChartWidth, spacing } =
-    dataLength <= 12
-      ? { barWidth: "60px", minChartWidth: "100%", spacing: "8px" }
-      : {
-          barWidth: "35px",
-          minChartWidth: `${dataLength * 50}px`,
-          spacing: "5px",
-        };
+  // TÍNH barWidth động theo số cột và chiều rộng khung
+  const containerWidth = chartContainer.value.offsetWidth || 900; // fallback nếu chưa render
+  const spacing = 8; // px
+  const totalSpacing = spacing * (dataLength - 1);
+  const barWidth = Math.max(24, Math.floor((containerWidth - totalSpacing) / dataLength)); // tối thiểu 24px
 
-  const scrollContainer = document.createElement("div");
-  scrollContainer.style.cssText = `
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 10px;
-  `;
-
+  // KHÔNG tạo scrollContainer, chỉ tạo chartDiv
   const chartDiv = document.createElement("div");
   chartDiv.style.cssText = `
     display: flex;
     align-items: end;
-    justify-content: ${dataLength <= 12 ? "space-around" : "flex-start"};
+    justify-content: center; // căn giữa các cột
     height: 350px;
     padding: 20px;
     background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
     border-radius: 15px;
-    min-width: ${minChartWidth};
-    gap: ${spacing};
+    gap: ${spacing}px;
+    width: 100%;
   `;
 
   data.forEach((item, index) => {
@@ -434,14 +414,13 @@ const createChart = (data) => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: ${barWidth};
-      min-width: ${barWidth};
+      width: ${barWidth}px;
+      min-width: ${barWidth}px;
     `;
 
     const barHeight = Math.max((item.value / maxValue) * 280, 20);
     const valueLabel = document.createElement("div");
 
-    // Format value display
     if (item.value >= 1000000) {
       valueLabel.textContent = (item.value / 1000000).toFixed(3) + "K";
     } else if (item.value >= 1000) {
@@ -451,7 +430,7 @@ const createChart = (data) => {
     }
 
     valueLabel.style.cssText = `
-      font-size: ${dataLength > 12 ? "10px" : "12px"};
+      font-size: 12px;
       font-weight: bold;
       color: #333;
       margin-bottom: 5px;
@@ -482,7 +461,7 @@ const createChart = (data) => {
     const xLabel = document.createElement("div");
     xLabel.textContent = item.x;
     xLabel.style.cssText = `
-      font-size: ${dataLength > 12 ? "10px" : "12px"};
+      font-size: 12px;
       color: #666;
       margin-top: 10px;
       text-align: center;
@@ -494,11 +473,7 @@ const createChart = (data) => {
     chartDiv.appendChild(barContainer);
   });
 
-  scrollContainer.appendChild(chartDiv);
-  chartContainer.value.appendChild(scrollContainer);
-
-  debugInfo.value = `Chart created with ${data.length} bars`;
-  console.log("Chart created successfully");
+  chartContainer.value.appendChild(chartDiv);
 };
 
 // Load chart data
@@ -530,12 +505,14 @@ const loadChartData = async (timeRange) => {
     }
 
     const formattedData = formatDataForChart(data);
-    chartData.value = formattedData;
+    // Thêm dòng này để chuẩn hóa đủ cột
+    const fullChartData = getFullChartData(formattedData, timeRange);
+    chartData.value = fullChartData;
 
-    if (formattedData.length > 0) {
+    if (fullChartData.length > 0) {
       await nextTick();
       setTimeout(() => {
-        createChart(formattedData);
+        createChart(fullChartData);
       }, 100);
     } else {
       debugInfo.value = "No data after formatting";
@@ -597,6 +574,7 @@ const loadServiceData = async () => {
     isLoadingService.value = false;
   }
 };
+
 
 // Create pie chart
 const createPieChart = () => {
@@ -690,140 +668,97 @@ const createPieChart = () => {
 
 // Product pie chart variables
 const productPieChart = ref(null);
-//const productData = ref([]);
+const productData = ref([]);
 let productPieChartInstance = null;
 const isLoadingProduct = ref(false);
 
 // Load product data for pie chart
-// const loadProductData = async () => {
-//   console.log("Loading product data...");
+const loadProductData = async () => {
+  try {
+    isLoadingProduct.value = true;
+    const response = await apiClient.get("/ThongKe/SoLuongSanPham");
+    if (Array.isArray(response) && response.length > 0) {
+      productData.value = response;
+    } else {
+      productData.value = [];
+    }
+    if (productData.value.length > 0) {
+      await nextTick();
+      setTimeout(() => {
+        createProductPieChart();
+      }, 100);
+    }
+  } catch (error) {
+    console.error("Error loading product data:", error);
+    productData.value = [];
+  } finally {
+    isLoadingProduct.value = false;
+  }
+};
 
-//   try {
-//     isLoadingProduct.value = true;
+const createProductPieChart = () => {
+  if (!productPieChart.value) return;
+  if (!productData.value || productData.value.length === 0) return;
+  if (productPieChartInstance) productPieChartInstance.destroy();
 
-//     const response = await apiClient.get("/ThongKe/SoLuongSanPham");
-//     console.log("Product API Response:", response);
-
-//     if (Array.isArray(response) && response.length > 0) {
-//       const total = response.reduce((sum, item) => sum + item.soLuong, 0);
-//       productData.value = response.map((item) => ({
-//         productName: item.productName,
-//         soLuong: item.soLuong,
-//         phanTram:
-//           total > 0 ? parseFloat(((item.soLuong / total) * 100).toFixed(2)) : 0,
-//       }));
-//     } else {
-//       console.warn("No product data received, using mock data");
-//       productData.value = mockProductData || [];
-//     }
-
-//     if (productData.value.length > 0) {
-//       await nextTick();
-//       setTimeout(() => {
-//         createProductPieChart();
-//       }, 100);
-//     }
-//   } catch (error) {
-//     console.error("Error loading product data:", error);
-//     productData.value = mockProductData || [];
-//     await nextTick();
-//     setTimeout(() => {
-//       createProductPieChart();
-//     }, 100);
-//   } finally {
-//     isLoadingProduct.value = false;
-//   }
-// };
-
-// Create product pie chart
-// const createProductPieChart = () => {
-//   console.log("Creating product pie chart with data:", productData.value);
-
-//   if (!productPieChart.value) {
-//     console.error("Product pie chart canvas not found");
-//     return;
-//   }
-
-//   if (!productData.value || productData.value.length === 0) {
-//     console.warn("No product data for pie chart");
-//     return;
-//   }
-
-//   if (productPieChartInstance) {
-//     productPieChartInstance.destroy();
-//   }
-
-//   const ctx = productPieChart.value.getContext("2d");
-
-//   productPieChartInstance = new Chart(ctx, {
-//     type: "pie",
-//     data: {
-//       labels: productData.value.map((item) => item.productName),
-//       datasets: [
-//         {
-//           data: productData.value.map((item) => item.phanTram),
-//           backgroundColor: [
-//             "#FF6B6B",
-//             "#4ECDC4",
-//             "#45B7D1",
-//             "#96CEB4",
-//             "#FFEEAD",
-//             "#D4A5A5",
-//             "#95E1D3",
-//             "#F38BA8",
-//           ],
-//           borderWidth: 2,
-//           borderColor: "#fff",
-//         },
-//       ],
-//     },
-//     options: {
-//       responsive: true,
-//       maintainAspectRatio: false,
-//       plugins: {
-//         legend: {
-//           position: "right",
-//           labels: {
-//             font: {
-//               size: 12,
-//               family: "Arial",
-//               weight: "500",
-//             },
-//             color: "#333",
-//             padding: 15,
-//             usePointStyle: true,
-//           },
-//         },
-//         tooltip: {
-//           callbacks: {
-//             label: (context) => {
-//               const label = context.label || "";
-//               const value = context.parsed || 0;
-//               const dataItem = productData.value[context.dataIndex];
-//               return [
-//                 `${label}`,
-//                 `Số lượng: ${dataItem.soLuong.toLocaleString()}`,
-//                 `Tỷ lệ: ${value.toFixed(2)}%`,
-//               ];
-//             },
-//           },
-//           backgroundColor: "rgba(255, 255, 255, 0.95)",
-//           titleColor: "#333",
-//           bodyColor: "#666",
-//           borderColor: "#ddd",
-//           borderWidth: 1,
-//         },
-//       },
-//       animation: {
-//         animateScale: true,
-//         animateRotate: true,
-//         duration: 1000,
-//       },
-//     },
-//   });
-
-//   console.log("Product pie chart created successfully");
-// };
+  const ctx = productPieChart.value.getContext("2d");
+  productPieChartInstance = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: productData.value.map((item) => item.productName),
+      datasets: [
+        {
+          data: productData.value.map((item) => item.phanTram),
+          backgroundColor: [
+            "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
+            "#FFEEAD", "#D4A5A5", "#95E1D3", "#F38BA8"
+          ],
+          borderWidth: 2,
+          borderColor: "#fff",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "right",
+          labels: {
+            font: { size: 12, family: "Arial", weight: "500" },
+            color: "#333",
+            padding: 15,
+            usePointStyle: true,
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const label = context.label || "";
+              const value = context.parsed || 0;
+              const dataItem = productData.value[context.dataIndex];
+              return [
+                `${label}`,
+                `Số lượng: ${dataItem.soLuong.toLocaleString()}`,
+                `Tỷ lệ: ${value.toFixed(2)}%`,
+              ];
+            },
+          },
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          titleColor: "#333",
+          bodyColor: "#666",
+          borderColor: "#ddd",
+          borderWidth: 1,
+        },
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true,
+        duration: 1000,
+      },
+    },
+  });
+};
 
 // Watch for data changes
 watch(chartData, (newData) => {
@@ -842,18 +777,19 @@ watch(serviceData, (newData) => {
   }
 });
 
-// watch(productData, (newData) => {
-//   if (newData && newData.length > 0 && productPieChart.value) {
-//     nextTick(() => {
-//       createProductPieChart();
-//     });
-//   }
-// });
+watch(productData, (newData) => {
+  if (newData && newData.length > 0 && productPieChart.value) {
+    nextTick(() => {
+      createProductPieChart();
+    });
+  }
+});
 
 // Load appointments and sort by time, filter by "Chưa đến"
 const getLichHenHomNay = async () => {
   try {
     const res = await apiClient.get("/DatLich");
+    console.log("Appointments API Response:", res);
     if (Array.isArray(res)) {
       const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
       lichHenHienThi.value = res
@@ -863,7 +799,7 @@ const getLichHenHomNay = async () => {
             lich.trangThai === "Chưa đến" &&
             lich.datTruoc == true
         )
-        .sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian)); // Sort by thoiGian
+        .sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian)); 
     } else {
       console.error("API response is not an array:", res);
       lichHenHienThi.value = [];
@@ -927,6 +863,7 @@ onMounted(async () => {
       const danhgia = await apiClient.get("/DanhGia/trungbinh-trongso");
       danhGia.value = danhgia || 0;
       await getLichHenHomNay();
+      console.log(lichHenHienThi.value);
     } catch (statsError) {
       console.warn("Error loading stats, using defaults:", statsError);
     }
@@ -934,13 +871,44 @@ onMounted(async () => {
     // Load charts
     await Promise.all([
       loadServiceData(),
-      //loadProductData(),
+      loadProductData(),
       loadChartData(selectedTimeRange.value),
     ]);
   } catch (error) {
     console.error("Initialization error:", error);
   }
 });
+
+function getFullChartData(rawData, timeRange) {
+  // Xác định các mốc thời gian cần hiển thị
+  let labels = [];
+  let now = new Date();
+  if (timeRange === "thang") {
+    // Hiển thị đủ ngày trong tháng hiện tại
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      labels.push(d.toString());
+    }
+  } else {
+    // Hiển thị đủ 12 tháng
+    labels = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  }
+
+  // Chuyển rawData thành map để tra cứu nhanh
+  const dataMap = {};
+  rawData.forEach(item => {
+    // item.x có thể là ngày/tháng, chuyển về string để so sánh
+    dataMap[item.x.toString()] = item.value;
+  });
+
+  // Tạo mảng dữ liệu đủ các mốc, nếu không có thì gán 0
+  return labels.map(label => ({
+    x: label,
+    value: dataMap[label] ?? 0
+  }));
+}
 </script>
 
 <style scoped>

@@ -96,7 +96,7 @@
           </div>
           
           <div class="customer-meta">
-            <div class="time">{{ formatTime(customer.lastMessageTime || customer.startTime) }}</div>
+            <div class="time">{{ formatTime(customer.lastMessageTime || customer.startTime, true) }}</div>
             <div v-if="customer.unreadCount > 0" class="unread-count">
               {{ customer.unreadCount }}
             </div>
@@ -831,8 +831,12 @@ function scrollToBottom() {
   })
 }
 
-function formatTime(timestamp) {
-  const date = new Date(timestamp)
+function formatTime(timestamp, isLastMessage = false) {
+  let date = new Date(timestamp)
+  // Chỉ cộng thêm 7 tiếng nếu là lastMessage
+  if (isLastMessage) {
+    date = new Date(date.getTime() + 7 * 60 * 60 * 1000)
+  }
   const now = new Date()
   const diff = now - date
   if (diff < 60000) return 'Vừa xong'
