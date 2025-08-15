@@ -9,85 +9,7 @@
     </div>
 
     <!-- Import Section -->
-    <div class="card import-section">
-      <div class="card-header">
-        <h2 class="section-title">
-          <i class="fa fa-file-excel"></i>
-          Import Dịch vụ từ Excel
-        </h2>
-        <button class="btn btn-outline-light btn-sm" @click="downloadTemplate">
-          <i class="fa fa-download"></i>
-          Tải file mẫu
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="import-container">
-          <div class="upload-zone" :class="{ 'dragover': isDragOver }" 
-               @drop="handleDrop" 
-               @dragover.prevent="isDragOver = true" 
-               @dragleave="isDragOver = false"
-               @click="triggerFileInput">
-            <div class="upload-content">
-              <i class="fa fa-cloud-upload-alt upload-icon"></i>
-              <h3>Kéo thả file Excel vào đây</h3>
-              <p>hoặc <span class="upload-link">nhấn để chọn file</span></p>
-              <small class="upload-note">Chỉ hỗ trợ file .xlsx</small>
-            </div>
-            <input 
-              ref="fileInput" 
-              type="file" 
-              accept=".xlsx" 
-              @change="handleFileSelect" 
-              style="display: none"
-            />
-          </div>
-          
-          <div v-if="selectedFile" class="selected-file">
-            <div class="file-info">
-              <i class="fa fa-file-excel file-icon"></i>
-              <div class="file-details">
-                <span class="file-name">{{ selectedFile.name }}</span>
-                <small class="file-size">{{ formatFileSize(selectedFile.size) }}</small>
-              </div>
-              <button class="btn btn-sm btn-danger" @click="removeFile">
-                <i class="fa fa-times"></i>
-              </button>
-            </div>
-            <div class="import-actions">
-              <button class="btn btn-success" @click="importFile" :disabled="importing">
-                <i class="fa fa-upload" :class="{ 'fa-spin': importing }"></i>
-                {{ importing ? 'Đang import...' : 'Import dữ liệu' }}
-              </button>
-            </div>
-          </div>
 
-          <!-- Import Progress -->
-          <div v-if="importing" class="import-progress">
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: importProgress + '%' }"></div>
-            </div>
-            <p class="progress-text">Đang xử lý... {{ importProgress }}%</p>
-          </div>
-
-          <!-- Import Result -->
-          <div v-if="importResult" class="import-result" :class="importResult.success ? 'success' : 'error'">
-            <div class="result-icon">
-              <i class="fa" :class="importResult.success ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
-            </div>
-            <div class="result-content">
-              <h4>{{ importResult.success ? 'Import thành công!' : 'Import thất bại!' }}</h4>
-              <p v-if="importResult.success">
-                Đã import thành công {{ importResult.count }} dịch vụ
-              </p>
-              <p v-else>{{ importResult.message }}</p>
-            </div>
-            <button class="btn btn-sm btn-outline-secondary" @click="clearResult">
-              <i class="fa fa-times"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Bộ lọc -->
     <div class="card filter-section">
@@ -102,16 +24,11 @@
           <!-- Tìm kiếm theo tên -->
           <div class="filter-group">
             <label class="filter-label">
-            <i class="fa-solid fa-magnifying-glass me-1" style="color:#e83e8c;"></i> Tìm theo tên
+              <i class="fa-solid fa-magnifying-glass me-1" style="color:#e83e8c;"></i> Tìm theo tên
             </label>
             <div class="search-container">
-              <input 
-                v-model="searchName" 
-                @input="searchByName" 
-                type="text" 
-                class="search-input" 
-                placeholder="Nhập tên dịch vụ..." 
-              />
+              <input v-model="searchName" @input="searchByName" type="text" class="search-input"
+                placeholder="Nhập tên dịch vụ..." />
               <i class="fa fa-search search-icon"></i>
             </div>
           </div>
@@ -119,7 +36,7 @@
           <!-- Lọc theo giá -->
           <div class="filter-group price-filter">
             <label class="filter-label">
-            <i class="fa-solid fa-sliders me-1"></i> Lọc giá
+              <i class="fa-solid fa-sliders me-1"></i> Lọc giá
             </label>
             <div class="price-inputs">
               <input v-model.number="priceMin" type="number" class="form-control" placeholder="Từ" min="0" />
@@ -133,7 +50,7 @@
           <!-- Xem tất cả -->
           <div class="filter-group">
             <button class="btn btn-outline-primary" @click="fetchDichVus">
-            <i class="fa fa-list me-1"></i> Tất cả
+              <i class="fa fa-list me-1"></i> Tất cả
             </button>
           </div>
         </div>
@@ -165,7 +82,7 @@
                   <label class="form-label">Thời gian (phút) <span class="required">*</span></label>
                   <input v-model.number="dichVu.thoiGian" type="number" class="form-control" min="0" required />
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                   <label class="form-label">Hình ảnh</label>
                   <input type="file" class="form-control" @change="handleFileChange" accept="image/*" />
                 </div>
@@ -233,11 +150,7 @@
                     <td class="service-price">{{ dv.gia.toLocaleString() }} vnđ</td>
                     <td class="service-time">{{ dv.thoiGian }} phút</td>
                     <td class="service-image">
-                      <img 
-                        :src="imageUrl + dv.hinhAnh" 
-                        class="service-img" 
-                        alt="Service image"
-                      />
+                      <img :src="imageUrl + dv.hinhAnh" class="service-img" alt="Service image" />
                     </td>
                     <td class="service-date">{{ new Date(dv.ngayTao).toLocaleDateString() }}</td>
                     <td class="service-type">
@@ -253,12 +166,8 @@
                         <button class="btn btn-sm btn-info" @click="editDichVu(dv)" title="Chỉnh sửa">
                           <i class="fa fa-edit"></i>
                         </button>
-                        <button 
-                          class="btn btn-sm" 
-                          :class="dv.trangThai === 1 ? 'btn-warning' : 'btn-success'" 
-                          @click="toggleTrangThai(dv)"
-                          :title="dv.trangThai === 1 ? 'Tạm ngừng' : 'Kích hoạt'"
-                        >
+                        <button class="btn btn-sm" :class="dv.trangThai === 1 ? 'btn-warning' : 'btn-success'"
+                          @click="toggleTrangThai(dv)" :title="dv.trangThai === 1 ? 'Tạm ngừng' : 'Kích hoạt'">
                           <i class="fa" :class="dv.trangThai === 1 ? 'fa-pause' : 'fa-play'"></i>
                         </button>
                       </div>
@@ -270,31 +179,19 @@
 
             <!-- Phân trang -->
             <div class="pagination-container">
-              <button 
-                class="btn btn-outline-primary" 
-                :disabled="currentPage === 1" 
-                @click="goToPage(currentPage - 1)"
-              >
+              <button class="btn btn-outline-primary" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
                 <i class="fa fa-angle-left"></i>
                 Trước
               </button>
               <span class="page-info">Trang {{ currentPage }} / {{ totalPages }}</span>
               <div class="page-numbers">
-                <button 
-                  v-for="page in totalPages" 
-                  :key="page" 
-                  class="btn btn-sm page-btn" 
-                  :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'" 
-                  @click="goToPage(page)"
-                >
+                <button v-for="page in totalPages" :key="page" class="btn btn-sm page-btn"
+                  :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'" @click="goToPage(page)">
                   {{ page }}
                 </button>
               </div>
-              <button 
-                class="btn btn-outline-primary" 
-                :disabled="currentPage === totalPages" 
-                @click="goToPage(currentPage + 1)"
-              >
+              <button class="btn btn-outline-primary" :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)">
                 Sau
                 <i class="fa fa-angle-right"></i>
               </button>
@@ -352,119 +249,7 @@ const handleFileChange = (e) => {
   selectedImage.value = e.target.files[0];
 };
 
-// Import functions
-const triggerFileInput = () => {
-  fileInput.value.click();
-};
 
-const handleFileSelect = (e) => {
-  const file = e.target.files[0];
-  if (file && file.name.endsWith('.xlsx')) {
-    selectedFile.value = file;
-    importResult.value = null;
-  } else {
-    alert('Chỉ hỗ trợ file .xlsx');
-  }
-};
-
-const handleDrop = (e) => {
-  e.preventDefault();
-  isDragOver.value = false;
-  const file = e.dataTransfer.files[0];
-  if (file && file.name.endsWith('.xlsx')) {
-    selectedFile.value = file;
-    importResult.value = null;
-  } else {
-    alert('Chỉ hỗ trợ file .xlsx');
-  }
-};
-
-const removeFile = () => {
-  selectedFile.value = null;
-  if (fileInput.value) {
-    fileInput.value.value = '';
-  }
-};
-
-const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-const importFile = async () => {
-  if (!selectedFile.value) return;
-
-  importing.value = true;
-  importProgress.value = 0;
-  importResult.value = null;
-
-  try {
-    const formData = new FormData();
-    formData.append('file', selectedFile.value);
-
-    // Simulate progress
-    const progressInterval = setInterval(() => {
-      if (importProgress.value < 90) {
-        importProgress.value += 10;
-      }
-    }, 200);
-
-    const response = await apiClient.post('/DichVu/import', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    clearInterval(progressInterval);
-    importProgress.value = 100;
-
-    setTimeout(() => {
-      importing.value = false;
-      importResult.value = {
-        success: true,
-        count: response.count || 0,
-        message: `Import thành công ${response.count || 0} dịch vụ`
-      };
-      
-      // Refresh the list
-      fetchDichVus();
-      
-      // Clear file after successful import
-      setTimeout(() => {
-        selectedFile.value = null;
-        if (fileInput.value) {
-          fileInput.value.value = '';
-        }
-      }, 3000);
-    }, 500);
-
-  } catch (error) {
-    importing.value = false;
-    importProgress.value = 0;
-    importResult.value = {
-      success: false,
-      message: error.response?.data?.message || 'Có lỗi xảy ra khi import file'
-    };
-    console.error('Import error:', error);
-  }
-};
-
-const downloadTemplate = () => {
-  const link = document.createElement('a');
-  link.href = 'https://drive.google.com/uc?export=download&id=1bf_a4YgEFKGOcyT6gbmyE_J6DfU3r6XQ';
-  link.download = 'LDV_DV_LSP_SP.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-
-const clearResult = () => {
-  importResult.value = null;
-};
 
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
@@ -668,16 +453,7 @@ onMounted(() => {
   padding: 25px;
 }
 
-/* Import Section Styles */
-.import-section {
-  margin-bottom: 30px;
-}
 
-.import-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
 
 .upload-zone {
   border: 3px dashed #cbd5e0;
@@ -776,18 +552,7 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-.import-actions {
-  display: flex;
-  justify-content: flex-start;
-}
 
-.import-progress {
-  background: white;
-  border: 2px solid #e1e8ed;
-  border-radius: 12px;
-  padding: 25px;
-  text-align: center;
-}
 
 .progress-bar {
   width: 100%;
@@ -811,36 +576,12 @@ onMounted(() => {
   margin: 0;
 }
 
-.import-result {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  border-radius: 12px;
-  border-left: 5px solid;
-}
 
-.import-result.success {
-  background: rgba(39, 174, 96, 0.1);
-  border-left-color: #27ae60;
-}
-
-.import-result.error {
-  background: rgba(231, 76, 60, 0.1);
-  border-left-color: #e74c3c;
-}
 
 .result-icon {
   font-size: 2rem;
 }
 
-.import-result.success .result-icon {
-  color: #27ae60;
-}
-
-.import-result.error .result-icon {
-  color: #e74c3c;
-}
 
 .result-content {
   flex: 1;
@@ -852,13 +593,6 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.import-result.success .result-content h4 {
-  color: #27ae60;
-}
-
-.import-result.error .result-content h4 {
-  color: #e74c3c;
-}
 
 .result-content p {
   margin: 0;
@@ -1216,8 +950,13 @@ onMounted(() => {
 
 /* Animation for import progress */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .fa-spin {
@@ -1229,11 +968,11 @@ onMounted(() => {
   .content-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .form-section {
     order: 1;
   }
-  
+
   .list-section {
     order: 2;
   }
@@ -1298,9 +1037,7 @@ onMounted(() => {
     gap: 10px;
   }
 
-  .import-actions {
-    justify-content: center;
-  }
+
 
   .card-header {
     flex-direction: column;
@@ -1313,17 +1050,17 @@ onMounted(() => {
   .table-responsive {
     font-size: 0.8rem;
   }
-  
+
   .services-table th,
   .services-table td {
     padding: 8px 6px;
   }
-  
+
   .btn {
     padding: 10px 16px;
     font-size: 0.9rem;
   }
-  
+
   .btn-sm {
     padding: 6px 10px;
     font-size: 0.8rem;
