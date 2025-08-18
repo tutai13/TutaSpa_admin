@@ -48,13 +48,18 @@
               >
                 <div class="item-info">
                   <h3 class="item-name">{{ item.ten }}</h3>
-                  <p class="item-price">Đơn giá: {{ item.donGia.toLocaleString() }} ₫</p>
+                  <p class="item-price">
+                    Đơn giá: {{ item.donGia.toLocaleString() }} ₫
+                  </p>
                 </div>
                 <div class="quantity-controls">
                   <div class="quantity-input-group">
                     <button
                       class="btn btn-outline-secondary btn-sm"
-                      @click="item.soLuong > 1 && item.soLuong--; capNhatThanhTien(index)"
+                      @click="
+                        item.soLuong > 1 && item.soLuong--;
+                        capNhatThanhTien(index);
+                      "
                     >
                       <i class="fas fa-minus"></i>
                     </button>
@@ -67,13 +72,17 @@
                     />
                     <button
                       class="btn btn-outline-primary btn-sm"
-                      @click="item.soLuong++; capNhatThanhTien(index)"
+                      @click="
+                        item.soLuong++;
+                        capNhatThanhTien(index);
+                      "
                     >
                       <i class="fas fa-plus"></i>
                     </button>
                   </div>
                   <div class="item-total">
-                    Thành tiền: <strong>{{ item.thanhTien.toLocaleString() }} ₫</strong>
+                    Thành tiền:
+                    <strong>{{ item.thanhTien.toLocaleString() }} ₫</strong>
                   </div>
                 </div>
                 <div class="item-actions">
@@ -117,7 +126,9 @@
                     v-model="hinhThuc"
                     class="radio-input"
                   />
-                  <label for="chuyenKhoan" class="radio-label">Chuyển khoản</label>
+                  <label for="chuyenKhoan" class="radio-label"
+                    >Chuyển khoản</label
+                  >
                 </div>
               </div>
             </div>
@@ -169,7 +180,13 @@
                     ❌ Thiếu {{ (tongTien - tienKhachDua).toLocaleString() }} ₫
                   </div>
                   <div v-else class="text-success">
-                    Tiền thối lại: <strong>{{ (tienKhachDua - tongTien).toLocaleString() }} ₫</strong>
+                    Tiền thối lại:
+                    <strong
+                      >{{
+                        (tienKhachDua - tongTien).toLocaleString()
+                      }}
+                      ₫</strong
+                    >
                   </div>
                 </div>
               </div>
@@ -268,8 +285,15 @@
               class="item-card"
             >
               <div class="item-content">
-                <h4 class="item-title">{{ tab === "dichVu" ? item.tenDichVu : item.tenSP }}</h4>
-                <p class="item-price">{{ (tab === "dichVu" ? item.gia : item.gia).toLocaleString() }} ₫</p>
+                <h4 class="item-title">
+                  {{ tab === "dichVu" ? item.tenDichVu : item.tenSP }}
+                </h4>
+                <p class="item-price">
+                  {{
+                    (tab === "dichVu" ? item.gia : item.gia).toLocaleString()
+                  }}
+                  ₫
+                </p>
               </div>
               <button
                 class="btn btn-primary btn-sm add-btn"
@@ -312,15 +336,25 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(lich, index) in danhSachDatLich" :key="lich.datLichID" class="booking-row">
+              <tr
+                v-for="(lich, index) in danhSachDatLich"
+                :key="lich.datLichID"
+                class="booking-row"
+              >
                 <td>{{ index + 1 }}</td>
                 <td class="phone-cell">{{ lich.soDienThoai }}</td>
-                <td class="datetime-cell">{{ formatDateTime(lich.thoiGian) }}</td>
+                <td class="datetime-cell">
+                  {{ formatDateTime(lich.thoiGian) }}
+                </td>
                 <td class="duration-cell">{{ lich.thoiLuong }} phút</td>
                 <td class="status-cell">
                   <span
                     class="status-badge"
-                    :class="lich.trangThai === 'Đã đến' ? 'status-arrived' : 'status-waiting'"
+                    :class="
+                      lich.trangThai === 'Đã đến'
+                        ? 'status-arrived'
+                        : 'status-waiting'
+                    "
                   >
                     {{ lich.trangThai }}
                   </span>
@@ -328,9 +362,15 @@
                 <td class="payment-cell">
                   <span
                     class="payment-badge"
-                    :class="lich.daThanhToan ? 'payment-paid' : 'payment-unpaid'"
+                    :class="
+                      lich.daThanhToan ? 'payment-paid' : 'payment-unpaid'
+                    "
                   >
-                    {{ lich.daThanhToan ? "✓ Đã thanh toán" : "❌ Chưa thanh toán" }}
+                    {{
+                      lich.daThanhToan
+                        ? "✓ Đã thanh toán"
+                        : "❌ Chưa thanh toán"
+                    }}
                   </span>
                 </td>
                 <td class="services-cell">
@@ -383,10 +423,10 @@
 
     <!-- Toast Notifications -->
     <div class="toast-container">
-      <div 
-        v-for="toast in toasts" 
-        :key="toast.id" 
-        class="toast" 
+      <div
+        v-for="toast in toasts"
+        :key="toast.id"
+        class="toast"
         :class="toast.type"
       >
         <i class="fas" :class="getToastIcon(toast.type)"></i>
@@ -397,11 +437,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import dayjs from "dayjs";
 import apiClient from "../utils/axiosClient";
-
+import connection from "../services/bookingService";
 const route = useRoute();
 
 // Reactive data
@@ -424,27 +464,31 @@ const trangThaiGiamGia = ref("");
 const toasts = ref([]);
 
 // Toast methods
-const showToast = (message, type = 'info') => {
+const showToast = (message, type = "info") => {
   const toast = {
     id: Date.now(),
     message,
-    type
-  }
-  toasts.value.push(toast)
+    type,
+  };
+  toasts.value.push(toast);
   setTimeout(() => {
-    const index = toasts.value.findIndex(t => t.id === toast.id)
-    if (index > -1) toasts.value.splice(index, 1)
-  }, 3000)
-}
+    const index = toasts.value.findIndex((t) => t.id === toast.id);
+    if (index > -1) toasts.value.splice(index, 1);
+  }, 3000);
+};
 
 const getToastIcon = (type) => {
   switch (type) {
-    case 'success': return 'fa-check-circle'
-    case 'error': return 'fa-exclamation-circle'
-    case 'warning': return 'fa-exclamation-triangle'
-    default: return 'fa-info-circle'
+    case "success":
+      return "fa-check-circle";
+    case "error":
+      return "fa-exclamation-circle";
+    case "warning":
+      return "fa-exclamation-triangle";
+    default:
+      return "fa-info-circle";
   }
-}
+};
 
 // Phone validation
 const filterNumeric = (event) => {
@@ -496,7 +540,7 @@ const chonDichVu = (dv) => {
       thanhTien: dv.gia,
     });
   }
-  showToast(`Đã thêm ${dv.tenDichVu}`, 'success');
+  showToast(`Đã thêm ${dv.tenDichVu}`, "success");
 };
 
 const chonSanPham = (sp) => {
@@ -513,7 +557,7 @@ const chonSanPham = (sp) => {
       thanhTien: sp.gia,
     });
   }
-  showToast(`Đã thêm ${sp.tenSP}`, 'success');
+  showToast(`Đã thêm ${sp.tenSP}`, "success");
 };
 
 const capNhatThanhTien = (index) => {
@@ -527,16 +571,16 @@ const capNhatThanhTien = (index) => {
 const xoaItem = (index) => {
   const itemName = danhSachChon.value[index].ten;
   danhSachChon.value.splice(index, 1);
-  showToast(`Đã xóa ${itemName}`, 'warning');
+  showToast(`Đã xóa ${itemName}`, "warning");
 };
 
 // Payment methods
 const taoThanhToan = async () => {
   if (errorMessage.value) {
-    showToast('Vui lòng kiểm tra số điện thoại', 'error');
+    showToast("Vui lòng kiểm tra số điện thoại", "error");
     return;
   }
-  
+
   const tienKhach = hinhThuc.value === "Tiền mặt" ? tienKhachDua.value : null;
   const tienThoi =
     hinhThuc.value === "Tiền mặt"
@@ -567,7 +611,7 @@ const taoThanhToan = async () => {
         `/DatLich/capnhat-thanhtoan/${lichDangSua.value.datLichID}`
       );
     }
-    showToast('Tạo hóa đơn thành công!', 'success');
+    showToast("Tạo hóa đơn thành công!", "success");
     danhSachChon.value = [];
     tienKhachDua.value = 0;
     tienKhachDuaHienThi.value = "";
@@ -576,7 +620,7 @@ const taoThanhToan = async () => {
     layDanhSach();
   } catch (err) {
     console.error("Lỗi tạo hóa đơn:", err);
-    showToast('Tạo hóa đơn thất bại. Vui lòng thử lại.', 'error');
+    showToast("Tạo hóa đơn thất bại. Vui lòng thử lại.", "error");
   }
 };
 
@@ -608,53 +652,79 @@ const taoMaChuyenKhoan = async () => {
       window.location.href = response.checkoutUrl;
     } else {
       console.error("Không có checkoutUrl trong phản hồi:", response);
-      showToast('Không thể tạo mã chuyển khoản.', 'error');
+      showToast("Không thể tạo mã chuyển khoản.", "error");
     }
   } catch (error) {
     console.error("Lỗi tạo mã thanh toán:", error);
-    showToast('Có lỗi xảy ra khi tạo mã chuyển khoản.', 'error');
+    showToast("Có lỗi xảy ra khi tạo mã chuyển khoản.", "error");
   }
 };
 
+const sapXepDanhSach = () => {
+  danhSachDatLich.value.sort((a, b) => {
+    const daThanhToanA = a.daThanhToan ?? false;
+    const daThanhToanB = b.daThanhToan ?? false;
+    if (daThanhToanA !== daThanhToanB) {
+      return daThanhToanA ? 1 : -1;
+    }
+    const timeA = new Date(a.thoiGian);
+    const timeB = new Date(b.thoiGian);
+    if (isNaN(timeA) || isNaN(timeB)) {
+      console.error("Invalid date detected:", {
+        timeA: a.thoiGian,
+        timeB: b.thoiGian,
+      });
+      return 0; // Fallback to prevent sorting errors
+    }
+    return timeA - timeB;
+  });
+  console.log(
+    "Danh sách sau sắp xếp:",
+    JSON.stringify(
+      danhSachDatLich.value.map((item) => ({
+        datLichID: item.datLichID,
+        thoiGian: item.thoiGian,
+        daThanhToan: item.daThanhToan,
+      })),
+      null,
+      2
+    )
+  );
+};
 // Data loading
 const layDanhSach = async () => {
   try {
     const resDL = await apiClient.get("/DatLich");
     const today = new Date().toISOString().split("T")[0];
-    danhSachDatLich.value = resDL
-      .filter((item) => {
-        const ngayItem = new Date(item.thoiGian).toISOString().split("T")[0];
-        return ngayItem === today;
-      })
-      .sort((a, b) => {
-        if (a.daThanhToan !== b.daThanhToan) {
-          return a.daThanhToan ? 1 : -1;
-        }
-        return new Date(a.thoiGian) - new Date(b.thoiGian);
-      });
+    danhSachDatLich.value = resDL.filter((item) => {
+      const ngayItem = new Date(item.thoiGian).toISOString().split("T")[0];
+      return ngayItem === today;
+    });
+    sapXepDanhSach();
     const resDV = await apiClient.get("/DichVu");
     dichVus.value = resDV;
     const resSP = await apiClient.get("/Product");
     sanPhams.value = resSP;
   } catch (err) {
     console.error("Lỗi lấy danh sách:", err);
-    showToast('Lỗi tải dữ liệu. Vui lòng thử lại.', 'error');
+    showToast("Lỗi tải dữ liệu. Vui lòng thử lại.", "error");
   }
 };
 
 // Utility functions
 const formatDateTime = (dateStr) => {
-  const date = new Date(dateStr);
-  return `${date.toLocaleTimeString([], {
+  const local = dateStr.replace("Z", "");
+  const date = new Date(local);
+  return date.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
-  })} - ${date.toLocaleDateString("vi-VN")}`;
+  });
 };
 
 // Booking management
 const datLich = async () => {
   if (errorMessage.value) {
-    showToast('Vui lòng kiểm tra số điện thoại.', 'warning');
+    showToast("Vui lòng kiểm tra số điện thoại.", "warning");
     return;
   }
 
@@ -666,12 +736,12 @@ const datLich = async () => {
     }));
 
   if (dichVusSelected.length === 0) {
-    showToast('Vui lòng chọn ít nhất một dịch vụ để đặt lịch.', 'warning');
+    showToast("Vui lòng chọn ít nhất một dịch vụ để đặt lịch.", "warning");
     return;
   }
 
   if (!soDienThoai.value.trim()) {
-    showToast('Vui lòng nhập số điện thoại khách hàng.', 'warning');
+    showToast("Vui lòng nhập số điện thoại khách hàng.", "warning");
     return;
   }
 
@@ -685,7 +755,7 @@ const datLich = async () => {
 
   try {
     const response = await apiClient.post("/DatLich", payload);
-    showToast('Đặt lịch thành công!', 'success');
+    showToast("Đặt lịch thành công!", "success");
     soDienThoai.value = "";
     ghiChu.value = "";
     danhSachChon.value = [];
@@ -694,13 +764,13 @@ const datLich = async () => {
     console.error("Lỗi đặt lịch:", err);
     const errorMsg =
       err.response?.data || "Đặt lịch thất bại. Vui lòng thử lại.";
-    showToast(errorMsg, 'error');
+    showToast(errorMsg, "error");
   }
 };
 
 const capNhatLich = async () => {
   if (errorMessage.value) {
-    showToast('Vui lòng kiểm tra số điện thoại.', 'warning');
+    showToast("Vui lòng kiểm tra số điện thoại.", "warning");
     return;
   }
 
@@ -712,7 +782,7 @@ const capNhatLich = async () => {
     }));
 
   if (dichVusSelected.length === 0) {
-    showToast('Vui lòng chọn ít nhất một dịch vụ để cập nhật.', 'warning');
+    showToast("Vui lòng chọn ít nhất một dịch vụ để cập nhật.", "warning");
     return;
   }
 
@@ -729,7 +799,7 @@ const capNhatLich = async () => {
       `/DatLich/${lichDangSua.value.datLichID}`,
       payload
     );
-    showToast('Cập nhật lịch thành công!', 'success');
+    showToast("Cập nhật lịch thành công!", "success");
     isSuaLich.value = false;
     lichDangSua.value = null;
     danhSachChon.value = [];
@@ -739,7 +809,7 @@ const capNhatLich = async () => {
   } catch (err) {
     console.error("Lỗi cập nhật lịch:", err);
     const errorMsg = err.response?.data || "Cập nhật lịch thất bại.";
-    showToast(errorMsg, 'error');
+    showToast(errorMsg, "error");
   }
 };
 
@@ -756,7 +826,7 @@ const batDauSuaLich = (lich) => {
     donGia: ct.dichVu.gia,
     thanhTien: ct.dichVu.gia * (ct.soLuongDV || 1),
   }));
-  showToast('Đã tải thông tin lịch để chỉnh sửa', 'info');
+  showToast("Đã tải thông tin lịch để chỉnh sửa", "info");
 };
 
 const huySua = () => {
@@ -765,16 +835,16 @@ const huySua = () => {
   danhSachChon.value = [];
   soDienThoai.value = "";
   ghiChu.value = "";
-  showToast('Đã hủy chỉnh sửa', 'info');
+  showToast("Đã hủy chỉnh sửa", "info");
 };
 
 const doiTrangThai = async (id) => {
   try {
     const res = await apiClient.put(`/DatLich/doitrangthai/${id}`);
-    showToast('Đã đổi trạng thái lịch hẹn', 'success');
+    showToast("Đã đổi trạng thái lịch hẹn", "success");
     layDanhSach();
   } catch (err) {
-    showToast('Lỗi khi đổi trạng thái!', 'error');
+    showToast("Lỗi khi đổi trạng thái!", "error");
     console.error(err);
   }
 };
@@ -808,11 +878,14 @@ const apDungMaGiamGia = async () => {
     }
 
     trangThaiGiamGia.value = `✅ Đã áp dụng mã ${voucher.maCode}`;
-    showToast(`Áp dụng mã giảm giá thành công: ${giamGia.value.toLocaleString()}₫`, 'success');
+    showToast(
+      `Áp dụng mã giảm giá thành công: ${giamGia.value.toLocaleString()}₫`,
+      "success"
+    );
   } catch (err) {
     console.error("Lỗi API mã giảm giá:", err);
     trangThaiGiamGia.value = "❌ Lỗi hệ thống";
-    showToast('Lỗi khi áp dụng mã giảm giá', 'error');
+    showToast("Lỗi khi áp dụng mã giảm giá", "error");
   }
 };
 
@@ -829,10 +902,35 @@ onMounted(async () => {
       }
     }
     localStorage.removeItem("checkoutData");
-    layDanhSach();
+    await layDanhSach();
+
+    connection.on("ReceiveBookingNotification", (booking) => {
+      const today = dayjs().format("YYYY-MM-DD");
+      const ngayItem = dayjs(booking.thoiGian).format("YYYY-MM-DD");
+      if (ngayItem === today) {
+        // danhSachDatLich.value.push(booking);
+        // sapXepDanhSach();
+        booking.daThanhToan = booking.daThanhToan ?? false;
+        booking.thoiGian = dayjs(booking.thoiGian).toISOString();
+
+        danhSachDatLich.value = [...danhSachDatLich.value, booking];
+        sapXepDanhSach();
+        showToast("Có lịch đặt mới!", "success");
+      } else {
+        console.log("Booking không thuộc hôm nay, bỏ qua:", ngayItem);
+      }
+    });
+
+    await connection.start();
+    console.log("✅ SignalR Connected!");
   } catch (err) {
     console.error("Lỗi tải dữ liệu:", err);
-    showToast('Lỗi tải dữ liệu. Vui lòng thử lại.', 'error');
+    showToast("Lỗi tải dữ liệu. Vui lòng thử lại.", "error");
+  }
+});
+onBeforeUnmount(() => {
+  if (connection) {
+    connection.stop();
   }
 });
 </script>
@@ -842,7 +940,7 @@ onMounted(async () => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #f8f9fa;
   min-height: 100vh;
 }
@@ -1362,7 +1460,7 @@ onMounted(async () => {
 }
 
 .phone-cell {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-weight: 600;
 }
 
@@ -1581,23 +1679,23 @@ onMounted(async () => {
   .items-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .item-card {
     flex-direction: column;
     gap: 10px;
     text-align: center;
   }
-  
+
   .btn {
     padding: 8px 16px;
     font-size: 0.9rem;
   }
-  
+
   .btn-sm {
     padding: 6px 10px;
     font-size: 0.8rem;
   }
-  
+
   .tab-button {
     padding: 12px 15px;
     font-size: 0.9rem;
