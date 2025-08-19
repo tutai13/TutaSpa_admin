@@ -65,15 +65,26 @@
                 </div>
               </div>
 
-              <div class="filter-group">
-                <label class="filter-label">Từ ngày</label>
-                <input type="date" class="date-input" v-model="startDate" />
-              </div>
+  <div class="filter-group">
+  <label class="filter-label">Từ ngày</label>
+  <input 
+    type="date" 
+    class="date-input" 
+    v-model="startDate" 
+    :max="endDate" 
+  />
+</div>
 
-              <div class="filter-group">
-                <label class="filter-label">Đến ngày</label>
-                <input type="date" class="date-input" v-model="endDate" />
-              </div>
+<div class="filter-group">
+  <label class="filter-label">Đến ngày</label>
+  <input 
+    type="date" 
+    class="date-input" 
+    v-model="endDate" 
+    :min="startDate" 
+  />
+</div>
+
             </div>
           </div>
         </div>
@@ -112,7 +123,7 @@
         </transition>
       </div>
 
-      <!-- Reviews List -->
+      <!-- Reviews Table -->
       <div class="reviews-section">
         <div v-if="danhSachLoc.length === 0" class="empty-state">
           <div class="empty-icon">
@@ -122,170 +133,121 @@
           <p>Thử thay đổi bộ lọc để xem thêm đánh giá</p>
         </div>
 
-        <div v-else class="reviews-grid">
-          <div
-            v-for="dg in danhSachLoc"
-            :key="dg.id"
-            class="review-card"
-          >
-            <div class="review-header">
-              <div class="service-info">
-                <div class="service-badge">
-                  <i class="fas fa-spa me-1"></i>
-                  {{ dg.dichVu?.tenDichVu || "Không rõ" }}
-                </div>
-                <div class="review-date">{{ formatDate(dg.ngayTao) }}</div>
-              </div>
-              
-              <div class="review-status">
-                <span
-                  class="status-badge"
-                  :class="dg.daDuyet ? 'approved' : 'pending'"
-                >
-                  <i
-                    :class="
-                      dg.daDuyet
-                        ? 'fas fa-check-circle'
-                        : 'fas fa-hourglass-start'
-                    "
-                  ></i>
-                  {{ dg.daDuyet ? "Đã duyệt" : "Chưa duyệt" }}
-                </span>
-              </div>
-            </div>
-
-            <div class="review-body">
-              <div class="user-info">
-                <div class="user-avatar">
-                  <i class="fas fa-user"></i>
-                </div>
-                <div class="user-details">
-                  <div class="user-name">
-                    <span v-if="dg.anDanh" class="anonymous">
-                      <i class="fas fa-user-secret me-1"></i>Ẩn danh
+        <div v-else class="table-section">
+          <div class="table-header">
+            <h3><i class="fas fa-table me-2"></i>Danh sách đánh giá ({{ danhSachLoc.length }} kết quả)</h3>
+          </div>
+          <div class="table-wrapper">
+            <table class="reviews-table">
+              <thead>
+                <tr>
+                  <th class="col-stt">#</th>
+                  <th class="col-service">Dịch vụ</th>
+                  <th class="col-user">Người dùng</th>
+                  <th class="col-rating">Đánh giá</th>
+                  <th class="col-content">Nội dung</th>
+                  <th class="col-date">Ngày tạo</th>
+                  <th class="col-status">Trạng thái</th>
+                  <th class="col-actions">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(dg, index) in danhSachLoc" :key="dg.id" class="review-row">
+                  <td class="stt-cell">{{ index + 1 }}</td>
+                  
+                  <td class="service-cell">
+                    <div class="service-info">
+                      <div class="service-badge">
+                        <i class="fas fa-spa"></i>
+                        <span>{{ dg.dichVu?.tenDichVu || "Không rõ" }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td class="user-cell">
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                      </div>
+                      <div class="user-details">
+                        <span v-if="dg.anDanh" class="anonymous">
+                          <i class="fas fa-user-secret me-1"></i>Ẩn danh
+                        </span>
+                        <span v-else class="username">{{ dg.user?.name || "Chưa rõ" }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td class="rating-cell">
+                    <div class="rating-display">
+                      <div class="stars">
+                        <i
+                          v-for="n in 5"
+                          :key="n"
+                          class="fas fa-star"
+                          :class="n <= dg.soSao ? 'star-filled' : 'star-empty'"
+                        ></i>
+                      </div>
+                      <span class="rating-text">{{ dg.soSao }}/5</span>
+                    </div>
+                  </td>
+                  
+                  <td class="content-cell">
+                    <div class="review-content">
+                      <p>{{ dg.noiDung || "(Không có nội dung)" }}</p>
+                    </div>
+                  </td>
+                  
+                  <td class="date-cell">
+                    <div class="date-display">
+                      <i class="fas fa-calendar-alt"></i>
+                      <span>{{ formatDate(dg.ngayTao) }}</span>
+                    </div>
+                  </td>
+                  
+                  <td class="status-cell">
+                    <span
+                      class="status-badge"
+                      :class="dg.daDuyet ? 'approved' : 'pending'"
+                    >
+                      <i
+                        :class="
+                          dg.daDuyet
+                            ? 'fas fa-check-circle'
+                            : 'fas fa-hourglass-start'
+                        "
+                      ></i>
+                      {{ dg.daDuyet ? "Đã duyệt" : "Chưa duyệt" }}
                     </span>
-                    <span v-else>{{ dg.user?.name || "Chưa rõ" }}</span>
-                  </div>
-                  <div class="rating">
-                    <i
-                      v-for="n in 5"
-                      :key="n"
-                      class="fas fa-star"
-                      :class="
-                        n <= dg.soSao ? 'star-filled' : 'star-empty'
-                      "
-                    ></i>
-                    <span class="rating-text">{{ dg.soSao }}/5</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="review-content">
-                <p>{{ dg.noiDung || "(Không có nội dung)" }}</p>
-              </div>
-            </div>
-
-            <div class="review-actions">
-              <button
-                v-if="!dg.daDuyet"
-                @click="duyetDanhGia(dg.id)"
-                class="action-btn approve-btn"
-                title="Duyệt đánh giá"
-              >
-                <i class="fas fa-check"></i>
-                <span>Duyệt</span>
-              </button>
-              <button
-                @click="toggleTrangThai(dg.id)"
-                class="action-btn toggle-btn"
-                :title="dg.isActive ? 'Ẩn đánh giá' : 'Hiển thị lại đánh giá'"
-              >
-                <i
-                  :class="dg.isActive ? 'fas fa-eye-slash' : 'fas fa-eye'"
-                ></i>
-                <span>{{ dg.isActive ? 'Ẩn' : 'Hiện' }}</span>
-              </button>
-            </div>
+                  </td>
+                  
+                  <td class="actions-cell">
+                    <div class="action-buttons">
+                      <button
+                        v-if="!dg.daDuyet"
+                        @click="duyetDanhGia(dg.id)"
+                        class="action-btn approve-btn"
+                        title="Duyệt đánh giá"
+                      >
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button
+                        @click="toggleTrangThai(dg.id)"
+                        class="action-btn toggle-btn"
+                        :title="dg.isActive ? 'Ẩn đánh giá' : 'Hiển thị lại đánh giá'"
+                      >
+                        <i
+                          :class="dg.isActive ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                        ></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-
-      <!-- Reviews Table -->
-<!-- <div class="reviews-section">
-  <div v-if="danhSachLoc.length === 0" class="empty-state">
-    <div class="empty-icon">
-      <i class="fas fa-comments"></i>
-    </div>
-    <h3>Không có đánh giá phù hợp</h3>
-    <p>Thử thay đổi bộ lọc để xem thêm đánh giá</p>
-  </div>
-
-  <div v-else class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-      <thead class="table-primary">
-        <tr>
-          <th>#</th>
-          <th>Dịch vụ</th>
-          <th>Ngày tạo</th>
-          <th>Người dùng</th>
-          <th>Số sao</th>
-          <th>Nội dung</th>
-          <th>Trạng thái</th>
-          <th>Hoạt động</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(dg, index) in danhSachLoc" :key="dg.id">
-          <td>{{ index + 1 }}</td>
-          <td>{{ dg.dichVu?.tenDichVu || "Không rõ" }}</td>
-          <td>{{ formatDate(dg.ngayTao) }}</td>
-          <td>
-            <span v-if="dg.anDanh">
-              <i class="fas fa-user-secret text-muted me-1"></i>Ẩn danh
-            </span>
-            <span v-else>{{ dg.user?.name || "Chưa rõ" }}</span>
-          </td>
-          <td>
-            <i
-              v-for="n in 5"
-              :key="n"
-              class="fas fa-star"
-              :class="n <= dg.soSao ? 'text-warning' : 'text-muted'"
-            ></i>
-            <span class="ms-1">{{ dg.soSao }}/5</span>
-          </td>
-          <td>{{ dg.noiDung || "(Không có nội dung)" }}</td>
-          <td>
-            <span
-              class="badge"
-              :class="dg.daDuyet ? 'bg-success' : 'bg-warning text-dark'"
-            >
-              {{ dg.daDuyet ? "Đã duyệt" : "Chưa duyệt" }}
-            </span>
-          </td>
-          <td>
-            <button
-              v-if="!dg.daDuyet"
-              @click="duyetDanhGia(dg.id)"
-              class="btn btn-sm btn-success me-1"
-            >
-              <i class="fas fa-check"></i>
-            </button>
-            <button
-              @click="toggleTrangThai(dg.id)"
-              class="btn btn-sm btn-secondary"
-            >
-              <i
-                :class="dg.isActive ? 'fas fa-eye-slash' : 'fas fa-eye'"
-              ></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div> -->
-
 
       <!-- Charts Section -->
       <div class="charts-section">
@@ -441,6 +403,8 @@ const updateCharts = () => {
     ],
   };
 };
+
+
 </script>
 
 <style scoped>
@@ -693,7 +657,7 @@ const updateCharts = () => {
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
-/* Reviews Section */
+/* Table Section */
 .reviews-section {
   margin-bottom: 3rem;
 }
@@ -729,65 +693,207 @@ const updateCharts = () => {
   margin: 0;
 }
 
-.reviews-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 1.5rem;
-}
-
-.review-card {
+.table-section {
   background: white;
   border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border: 1px solid #f1f5f9;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.review-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+.table-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.review-header {
+.table-header h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.3rem;
+  font-weight: 600;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.reviews-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.reviews-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.reviews-table th {
+  padding: 1.2rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reviews-table th:last-child {
+  border-right: none;
+}
+
+/* Column Widths */
+.col-stt { width: 50px; text-align: center; }
+.col-service { width: 180px; }
+.col-user { width: 150px; }
+.col-rating { width: 120px; }
+.col-content { width: 300px; }
+.col-date { width: 160px; }
+.col-status { width: 120px; }
+.col-actions { width: 100px; text-align: center; }
+
+.reviews-table tbody tr {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.reviews-table tbody tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transform: scale(1.001);
+  box-shadow: inset 0 0 0 1px rgba(102, 126, 234, 0.1);
+}
+
+.reviews-table td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-right: 1px solid #f1f5f9;
+}
+
+.reviews-table td:last-child {
+  border-right: none;
+}
+
+/* Cell Styles */
+.stt-cell {
+  text-align: center;
+  font-weight: 600;
+  color: #6b7280;
 }
 
 .service-info {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
 }
 
 .service-badge {
   background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
   color: #0277bd;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  width: fit-content;
-}
-
-.review-date {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin-left: 0.5rem;
-}
-
-.status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.3rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.user-avatar {
+  width: 35px;
+  height: 35px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.username {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.anonymous {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.rating-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stars {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.star-filled {
+  color: #fbbf24;
+}
+
+.star-empty {
+  color: #d1d5db;
+}
+
+.rating-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.review-content {
+  max-width: 300px;
+}
+
+.review-content p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.date-display i {
+  color: #9ca3af;
+}
+
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: fit-content;
 }
 
 .status-badge.approved {
@@ -800,95 +906,23 @@ const updateCharts = () => {
   color: #d97706;
 }
 
-.review-body {
-  margin-bottom: 1.5rem;
-}
-
-.user-info {
+.action-buttons {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.user-avatar {
-  width: 45px;
-  height: 45px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
+  gap: 0.5rem;
   justify-content: center;
-  color: white;
-  font-size: 1.1rem;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.anonymous {
-  color: #6b7280;
-  font-style: italic;
-}
-
-.rating {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.star-filled {
-  color: #fbbf24;
-}
-
-.star-empty {
-  color: #d1d5db;
-}
-
-.rating-text {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-left: 0.5rem;
-}
-
-.review-content {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 1rem;
-  border-left: 4px solid #667eea;
-}
-
-.review-content p {
-  margin: 0;
-  color: #374151;
-  line-height: 1.6;
-  font-style: italic;
-}
-
-.review-actions {
-  display: flex;
-  gap: 0.8rem;
 }
 
 .action-btn {
-  padding: 0.8rem 1.2rem;
+  width: 35px;
+  height: 35px;
   border: none;
-  border-radius: 12px;
-  font-weight: 500;
-  cursor: pointer;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  justify-content: center;
+  cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 0.9rem;
 }
 
 .approve-btn {
@@ -898,7 +932,7 @@ const updateCharts = () => {
 
 .approve-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
 }
 
 .toggle-btn {
@@ -908,7 +942,7 @@ const updateCharts = () => {
 
 .toggle-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+  box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
 }
 
 /* Charts Section */
@@ -973,11 +1007,40 @@ const updateCharts = () => {
   transform: scaleY(0);
 }
 
+/* Scrollbar Styling */
+.table-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6b4190 100%);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .filter-row {
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
+  }
+  
+  .reviews-table {
+    font-size: 0.85rem;
+  }
+  
+  .reviews-table th,
+  .reviews-table td {
+    padding: 0.8rem 0.6rem;
   }
 }
 
@@ -999,11 +1062,48 @@ const updateCharts = () => {
     gap: 1.5rem;
   }
   
-  .reviews-grid {
-    grid-template-columns: 1fr;
+  .reviews-table {
+    font-size: 0.8rem;
+  }
+  
+  .reviews-table th,
+  .reviews-table td {
+    padding: 0.6rem 0.4rem;
+  }
+  
+  .col-content {
+    width: 200px;
+  }
+  
+  .review-content p {
+    -webkit-line-clamp: 2;
   }
   
   .charts-grid {
     grid-template-columns: 1fr;
-  }}
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+  
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .action-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+}
 </style>
