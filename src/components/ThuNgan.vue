@@ -376,7 +376,7 @@
                 <td class="services-cell">
                   <ul class="services-list">
                     <li
-                      v-for="dv in lich.chiTietDichVus"
+                      v-for="dv in lich.chiTietDatLichs"
                       :key="dv.chiTietDatLichID"
                       class="service-item"
                     >
@@ -819,7 +819,7 @@ const batDauSuaLich = (lich) => {
   soDienThoai.value = lich.soDienThoai;
   ghiChu.value = lich.ghiChu;
 
-  danhSachChon.value = lich.chiTietDichVus.map((ct) => ({
+  danhSachChon.value = lich.chiTietDatLichs.map((ct) => ({
     ten: ct.dichVu.tenDichVu,
     dichVuID: ct.dichVuID,
     soLuong: ct.soLuongDV || 1,
