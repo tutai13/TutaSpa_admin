@@ -83,9 +83,7 @@
               <i class="fas fa-star fa-1x text-white"></i>
             </div>
             <div class="stat-info text-white">
-              <div class="stat-number fs-2 fw-bold mb-1">
-                {{ danhGia }}/5
-              </div>
+              <div class="stat-number fs-2 fw-bold mb-1">{{ danhGia }}/5</div>
               <div class="stat-label fs-6 fw-medium">Đánh giá trung bình</div>
             </div>
           </div>
@@ -242,7 +240,6 @@
       </div>
     </div>
 
-
     <!-- Service Distribution Chart -->
     <div class="row mt-4">
       <div class="col-6">
@@ -308,7 +305,6 @@
         </div>
       </div>
     </div>
-    
   </div>
 </template>
 
@@ -392,7 +388,10 @@ const createChart = (data) => {
   const containerWidth = chartContainer.value.offsetWidth || 900; // fallback nếu chưa render
   const spacing = 8; // px
   const totalSpacing = spacing * (dataLength - 1);
-  const barWidth = Math.max(24, Math.floor((containerWidth - totalSpacing) / dataLength)); // tối thiểu 24px
+  const barWidth = Math.max(
+    24,
+    Math.floor((containerWidth - totalSpacing) / dataLength)
+  ); // tối thiểu 24px
 
   // KHÔNG tạo scrollContainer, chỉ tạo chartDiv
   const chartDiv = document.createElement("div");
@@ -575,7 +574,6 @@ const loadServiceData = async () => {
   }
 };
 
-
 // Create pie chart
 const createPieChart = () => {
   console.log("Creating pie chart with data:", serviceData.value);
@@ -710,8 +708,14 @@ const createProductPieChart = () => {
         {
           data: productData.value.map((item) => item.phanTram),
           backgroundColor: [
-            "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
-            "#FFEEAD", "#D4A5A5", "#95E1D3", "#F38BA8"
+            "#FF6B6B",
+            "#4ECDC4",
+            "#45B7D1",
+            "#96CEB4",
+            "#FFEEAD",
+            "#D4A5A5",
+            "#95E1D3",
+            "#F38BA8",
           ],
           borderWidth: 2,
           borderColor: "#fff",
@@ -799,7 +803,7 @@ const getLichHenHomNay = async () => {
             lich.trangThai === "Chưa đến" &&
             lich.datTruoc == true
         )
-        .sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian)); 
+        .sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian));
     } else {
       console.error("API response is not an array:", res);
       lichHenHienThi.value = [];
@@ -817,7 +821,7 @@ const getColor = (lich) => {
 
 // Get service names
 const getTenDichVu = (lich) => {
-  return lich.chiTietDichVus.map((dv) => dv.dichVu.tenDichVu).join(", ");
+  return lich.chiTietDatLichs.map((dv) => dv.dichVu.tenDichVu).join(", ");
 };
 
 // Format start time
@@ -832,7 +836,7 @@ const formatGio = (isoTime) => {
 // Calculate end time
 const tinhGioKetThuc = (lich) => {
   const start = new Date(lich.thoiGian);
-  const totalMinutes = lich.chiTietDichVus.reduce(
+  const totalMinutes = lich.chiTietDatLichs.reduce(
     (sum, dv) => sum + dv.dichVu.thoiGian,
     0
   );
@@ -898,15 +902,15 @@ function getFullChartData(rawData, timeRange) {
 
   // Chuyển rawData thành map để tra cứu nhanh
   const dataMap = {};
-  rawData.forEach(item => {
+  rawData.forEach((item) => {
     // item.x có thể là ngày/tháng, chuyển về string để so sánh
     dataMap[item.x.toString()] = item.value;
   });
 
   // Tạo mảng dữ liệu đủ các mốc, nếu không có thì gán 0
-  return labels.map(label => ({
+  return labels.map((label) => ({
     x: label,
-    value: dataMap[label] ?? 0
+    value: dataMap[label] ?? 0,
   }));
 }
 </script>
