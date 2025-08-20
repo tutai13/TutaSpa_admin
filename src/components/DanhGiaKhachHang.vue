@@ -23,8 +23,16 @@
       <!-- Advanced Filter Section -->
       <div class="filter-section">
         <div class="card shadow-lg border-0">
-          <div class="card-header bg-gradient-primary text-white">
+          <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Bộ lọc nâng cao</h5>
+            <button 
+              @click="resetFilters" 
+              class="btn btn-light btn-sm d-flex align-items-center"
+              title="Làm mới bộ lọc"
+            >
+              <i class="fas fa-sync-alt me-1"></i>
+              Làm mới
+            </button>
           </div>
           <div class="card-body p-4">
             <div class="row g-3">
@@ -60,6 +68,69 @@
                     placeholder="Nhập tên người dùng..."
                     v-model="searchName"
                   />
+                  <button 
+                    v-if="searchName" 
+                    @click="searchName = ''" 
+                    class="btn btn-outline-secondary border-start-0"
+                    type="button"
+                    title="Xóa tìm kiếm"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Star Rating Filter -->
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Lọc theo số sao</label>
+                <div class="star-filter-container">
+                  <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="starFilter" id="allStars" v-model="starFilter" value="all">
+                    <label class="btn btn-outline-secondary" for="allStars">
+                      <i class="fas fa-star-half-alt me-2"></i>Tất cả
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star5" v-model="starFilter" value="5">
+                    <label class="btn btn-outline-warning" for="star5">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 5" :key="n"></i>
+                      </span>
+                      <span class="ms-1">5 sao</span>
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star4" v-model="starFilter" value="4">
+                    <label class="btn btn-outline-warning" for="star4">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 4" :key="n"></i>
+                        <i class="far fa-star"></i>
+                      </span>
+                      <span class="ms-1">4 sao</span>
+                    </label>
+                  </div>
+                  <div class="btn-group w-100 mt-2" role="group">
+                    <input type="radio" class="btn-check" name="starFilter" id="star3" v-model="starFilter" value="3">
+                    <label class="btn btn-outline-warning" for="star3">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 3" :key="n"></i>
+                        <i class="far fa-star" v-for="n in 2" :key="n"></i>
+                      </span>
+                      <span class="ms-1">3 sao</span>
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star2" v-model="starFilter" value="2">
+                    <label class="btn btn-outline-warning" for="star2">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 2" :key="n"></i>
+                        <i class="far fa-star" v-for="n in 3" :key="n"></i>
+                      </span>
+                      <span class="ms-1">2 sao</span>
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star1" v-model="starFilter" value="1">
+                    <label class="btn btn-outline-danger" for="star1">
+                      <span class="stars-display">
+                        <i class="fas fa-star"></i>
+                        <i class="far fa-star" v-for="n in 4" :key="n"></i>
+                      </span>
+                      <span class="ms-1">1 sao</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -96,7 +167,25 @@
               <h6 class="mb-0 fw-semibold text-primary">
                 <i class="fas fa-spa me-2"></i>Lọc theo dịch vụ
               </h6>
-              <small class="text-muted">{{ danhSachLoc.length }} kết quả</small>
+              <div class="d-flex align-items-center gap-2">
+                <small class="text-muted">{{ danhSachLoc.length }} kết quả</small>
+                <button 
+                  v-if="starFilter !== 'all'" 
+                  @click="starFilter = 'all'" 
+                  class="btn btn-outline-secondary btn-sm me-2"
+                  title="Xóa lọc sao"
+                >
+                  <i class="fas fa-star me-1"></i>Xóa lọc sao
+                </button>
+                <button 
+                  v-if="selectedDichVu !== 'all'" 
+                  @click="selectedDichVu = 'all'" 
+                  class="btn btn-outline-secondary btn-sm"
+                  title="Xóa lọc dịch vụ"
+                >
+                  <i class="fas fa-times me-1"></i>Xóa lọc
+                </button>
+              </div>
             </div>
             
             <div class="service-tabs-horizontal">
@@ -134,18 +223,30 @@
                 <i class="fas fa-comments text-muted"></i>
               </div>
               <h4 class="text-muted mb-2">Không có đánh giá phù hợp</h4>
-              <p class="text-muted mb-0">Thử thay đổi bộ lọc để xem thêm đánh giá</p>
+              <p class="text-muted mb-3">Thử thay đổi bộ lọc để xem thêm đánh giá</p>
+              <button @click="resetFilters" class="btn btn-primary">
+                <i class="fas fa-sync-alt me-2"></i>Làm mới bộ lọc
+              </button>
             </div>
           </div>
         </div>
 
         <div v-else class="table-section">
           <div class="card shadow-lg border-0">
-            <div class="card-header bg-gradient-info text-white">
+            <div class="card-header bg-gradient-info text-white d-flex justify-content-between align-items-center">
               <h5 class="mb-0">
                 <i class="fas fa-table me-2"></i>
                 Danh sách đánh giá ({{ danhSachLoc.length }} kết quả)
               </h5>
+              <button 
+                @click="loadDanhSach" 
+                class="btn btn-light btn-sm d-flex align-items-center"
+                title="Tải lại dữ liệu"
+                :disabled="isLoading"
+              >
+                <i class="fas fa-sync-alt me-1" :class="{ 'fa-spin': isLoading }"></i>
+                {{ isLoading ? 'Đang tải...' : 'Tải lại' }}
+              </button>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive" style="max-height: 70vh;">
@@ -308,6 +409,8 @@ const searchName = ref("");
 const startDate = ref("");
 const endDate = ref("");
 const selectedDichVu = ref("all");
+const starFilter = ref("all");
+const isLoading = ref(false);
 
 const chartDataSoLuong = ref({ labels: [], datasets: [] });
 const chartDataTrungBinh = ref({ labels: [], datasets: [] });
@@ -322,12 +425,25 @@ onMounted(async () => await loadDanhSach());
 
 const loadDanhSach = async () => {
   try {
-    const res = await axiosClient.get("DanhGia/admin");
+    isLoading.value = true;
+    const res = await axiosClient.get("DanhGia/adminn");
     danhSach.value = res;
     updateCharts();
   } catch (err) {
     console.error("Lỗi khi tải đánh giá:", err);
+  } finally {
+    isLoading.value = false;
   }
+};
+
+// Reset all filters to default values
+const resetFilters = () => {
+  filter.value = "all";
+  searchName.value = "";
+  startDate.value = "";
+  endDate.value = "";
+  selectedDichVu.value = "all";
+  starFilter.value = "all";
 };
 
 const duyetDanhGia = async (id) => {
@@ -384,7 +500,11 @@ const danhSachLoc = computed(() => {
       selectedDichVu.value === "all" ||
       d.dichVu?.tenDichVu === selectedDichVu.value;
 
-    return matchFilter && matchSearch && matchDate && matchDichVu;
+    const matchStar =
+      starFilter.value === "all" ||
+      d.soSao === parseInt(starFilter.value);
+
+    return matchFilter && matchSearch && matchDate && matchDichVu && matchStar;
   });
 });
 
@@ -567,6 +687,8 @@ const updateCharts = () => {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  
+line-clamp: 2; /* chuẩn mới */
   overflow: hidden;
   line-height: 1.4;
   max-height: 4.2em;
@@ -584,7 +706,74 @@ const updateCharts = () => {
   padding-bottom: 3rem;
 }
 
-/* Responsive Adjustments */
+/* Refresh Button Styles */
+.btn-light {
+  transition: all 0.3s ease;
+}
+
+.btn-light:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Star Filter Styles */
+.star-filter-container .btn-group {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.star-filter-container .btn {
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-filter-container .stars-display {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 0.75rem;
+}
+
+.star-filter-container .stars-display .fas.fa-star {
+  color: #ffc107;
+}
+
+.star-filter-container .stars-display .far.fa-star {
+  color: #dee2e6;
+}
+
+.btn-check:checked + .btn-outline-warning {
+  background: linear-gradient(135deg, #e5ff7b 0%, #e5ff7b 100%);
+  border-color: #e5ff7b;
+  color: white;
+}
+
+.btn-check:checked + .btn-outline-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+  color: white;
+}
+
+.star-filter-container .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 @media (max-width: 768px) {
   .page-title {
     font-size: 1.8rem;
@@ -602,12 +791,22 @@ const updateCharts = () => {
   
   .text-truncate-3 {
     -webkit-line-clamp: 2;
+    line-clamp: 2; /* chuẩn mới */
     max-height: 2.8em;
   }
   
   .service-tabs-horizontal .nav-link {
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .card-header .btn {
+    align-self: flex-end;
   }
 }
 
