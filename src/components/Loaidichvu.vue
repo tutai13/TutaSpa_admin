@@ -355,8 +355,7 @@ const editLoaiDichVu = (item) => {
 };
 const downloadTemplate = () => {
   const link = document.createElement("a");
-  link.href =
-    "https://drive.google.com/uc?export=download&id=1bf_a4YgEFKGOcyT6gbmyE_J6DfU3r6XQ";
+  link.href = "https://docs.google.com/spreadsheets/d/1DvCbF-6Dx9JHg96fdQMRynL5WfYBUhJI/export?format=xlsx";
   link.download = "LDV_DV_LSP_SP.xlsx";
   document.body.appendChild(link);
   link.click();
