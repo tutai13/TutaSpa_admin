@@ -25,11 +25,25 @@
           <!-- Tìm kiếm theo tên -->
           <div class="filter-group">
             <label class="filter-label">
-              <i class="fa-solid fa-magnifying-glass me-1" style="color:#e83e8c;"></i> Tìm theo tên
+              <i
+                class="fa-solid fa-magnifying-glass me-1"
+                style="color: #e83e8c"
+              ></i>
+              Tìm theo tên
             </label>
             <div class="search-container">
-              <input v-model="searchName" type="text" class="search-input" placeholder="Nhập tên dịch vụ..." />
-              <button v-if="searchName" @click="clearSearch" class="clear-search" title="Xóa tìm kiếm">
+              <input
+                v-model="searchName"
+                type="text"
+                class="search-input"
+                placeholder="Nhập tên dịch vụ..."
+              />
+              <button
+                v-if="searchName"
+                @click="clearSearch"
+                class="clear-search"
+                title="Xóa tìm kiếm"
+              >
                 <i class="fas fa-times"></i>
               </button>
               <i class="fa fa-search search-icon"></i>
@@ -42,8 +56,20 @@
               <i class="fa-solid fa-sliders me-1"></i> Lọc giá
             </label>
             <div class="price-inputs">
-              <input v-model.number="priceMin" type="number" class="form-control" placeholder="Từ" min="0" />
-              <input v-model.number="priceMax" type="number" class="form-control" placeholder="Đến" min="0" />
+              <input
+                v-model.number="priceMin"
+                type="number"
+                class="form-control"
+                placeholder="Từ"
+                min="0"
+              />
+              <input
+                v-model.number="priceMax"
+                type="number"
+                class="form-control"
+                placeholder="Đến"
+                min="0"
+              />
             </div>
           </div>
 
@@ -52,7 +78,11 @@
             <label class="filter-label">Loại dịch vụ</label>
             <select v-model="selectedLoaiDichVu" class="form-control">
               <option value="">Tất cả loại</option>
-              <option v-for="ldv in loaiDichVus" :key="ldv.loaiDichVuID" :value="ldv.loaiDichVuID">
+              <option
+                v-for="ldv in loaiDichVus"
+                :key="ldv.loaiDichVuID"
+                :value="ldv.loaiDichVuID"
+              >
                 {{ ldv.tenLoai }}
               </option>
             </select>
@@ -74,8 +104,20 @@
               <i class="fa-solid fa-clock me-1"></i> Thời gian (phút)
             </label>
             <div class="time-inputs">
-              <input v-model.number="timeMin" type="number" class="form-control" placeholder="Từ" min="0" />
-              <input v-model.number="timeMax" type="number" class="form-control" placeholder="Đến" min="0" />
+              <input
+                v-model.number="timeMin"
+                type="number"
+                class="form-control"
+                placeholder="Từ"
+                min="0"
+              />
+              <input
+                v-model.number="timeMax"
+                type="number"
+                class="form-control"
+                placeholder="Đến"
+                min="0"
+              />
             </div>
           </div>
         </div>
@@ -96,46 +138,96 @@
             <form @submit.prevent="saveDichVu" class="service-form">
               <div class="form-grid">
                 <div class="form-group">
-                  <label class="form-label">Tên dịch vụ <span class="required">*</span></label>
-                  <input v-model="dichVu.tenDichVu" class="form-control" required />
+                  <label class="form-label"
+                    >Tên dịch vụ <span class="required">*</span></label
+                  >
+                  <input
+                    v-model="dichVu.tenDichVu"
+                    class="form-control"
+                    required
+                  />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Giá (VND) <span class="required">*</span></label>
-                  <input v-model.number="dichVu.gia" type="number" class="form-control" min="0" required />
+                  <label class="form-label"
+                    >Giá (VND) <span class="required">*</span></label
+                  >
+                  <input
+                    v-model.number="dichVu.gia"
+                    type="number"
+                    class="form-control"
+                    min="0"
+                    required
+                  />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Thời gian (phút) <span class="required">*</span></label>
-                  <input v-model.number="dichVu.thoiGian" type="number" class="form-control" min="0" required />
+                  <label class="form-label"
+                    >Thời gian (phút) <span class="required">*</span></label
+                  >
+                  <input
+                    v-model.number="dichVu.thoiGian"
+                    type="number"
+                    class="form-control"
+                    min="0"
+                    required
+                  />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Hình ảnh</label>
-                  <input type="file" class="form-control" @change="handleFileChange" accept="image/*" />
+                  <input
+                    type="file"
+                    class="form-control"
+                    @change="handleFileChange"
+                    accept="image/*"
+                  />
                 </div>
                 <div class="form-group full-width">
                   <label class="form-label">Mô tả</label>
-                  <textarea v-model="dichVu.moTa" class="form-control" rows="3"></textarea>
+                  <textarea
+                    v-model="dichVu.moTa"
+                    class="form-control"
+                    rows="3"
+                  ></textarea>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Loại dịch vụ <span class="required">*</span></label>
-                  <select v-model.number="dichVu.loaiDichVuID" class="form-control" required>
+                  <label class="form-label"
+                    >Loại dịch vụ <span class="required">*</span></label
+                  >
+                  <select
+                    v-model.number="dichVu.loaiDichVuID"
+                    class="form-control"
+                    required
+                  >
                     <option disabled value="">-- Chọn loại dịch vụ --</option>
-                    <option v-for="ldv in loaiDichVus" :key="ldv.loaiDichVuID" :value="ldv.loaiDichVuID">
+                    <option
+                      v-for="ldv in loaiDichVus"
+                      :key="ldv.loaiDichVuID"
+                      :value="ldv.loaiDichVuID"
+                    >
                       {{ ldv.tenLoai }}
                     </option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Trạng thái</label>
-                  <select v-model.number="dichVu.trangThai" class="form-control">
+                  <select
+                    v-model.number="dichVu.trangThai"
+                    class="form-control"
+                  >
                     <option :value="1">Hoạt động</option>
                     <option :value="0">Tạm ngừng</option>
                   </select>
                 </div>
               </div>
               <div class="form-actions">
-                <button type="submit" class="btn btn-primary" :disabled="loading">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  :disabled="loading"
+                >
                   <i class="fa fa-save"></i>
-                  {{ loading ? 'Đang lưu...' : (isEditing ? "Cập nhật" : "Thêm") }}
+                  {{
+                    loading ? "Đang lưu..." : isEditing ? "Cập nhật" : "Thêm"
+                  }}
                 </button>
                 <button type="button" class="btn btn-danger" @click="resetForm">
                   <i class="fa fa-undo"></i> Hủy
@@ -165,7 +257,13 @@
             <!-- Empty State -->
             <div v-else-if="!filteredDichVus.length" class="empty-state">
               <i class="fas fa-concierge-bell"></i>
-              <p>{{ dichVus.length ? 'Không tìm thấy dịch vụ phù hợp với bộ lọc' : 'Không có dịch vụ nào' }}</p>
+              <p>
+                {{
+                  dichVus.length
+                    ? "Không tìm thấy dịch vụ phù hợp với bộ lọc"
+                    : "Không có dịch vụ nào"
+                }}
+              </p>
             </div>
 
             <div v-else class="table-responsive">
@@ -183,30 +281,58 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="dv in paginatedDichVus" :key="dv.dichVuID" class="service-row">
+                  <tr
+                    v-for="dv in paginatedDichVus"
+                    :key="dv.dichVuID"
+                    class="service-row"
+                  >
                     <td class="service-name">{{ dv.tenDichVu }}</td>
-                    <td class="service-price">{{ formatCurrency(dv.gia) }}</td>
+                    <td class="service-price">
+                      {{ formatCurrency(dv.gia) }}
+                    </td>
                     <td class="service-time">{{ dv.thoiGian }} phút</td>
                     <td class="service-image">
-                      <img :src="imageUrl + dv.hinhAnh" class="service-img" alt="Service image" />
+                      <img
+                        :src="imageUrl + dv.hinhAnh"
+                        class="service-img"
+                        alt="Service image"
+                      />
                     </td>
                     <td class="service-date">{{ formatDate(dv.ngayTao) }}</td>
                     <td class="service-type">
                       <span class="type-badge">{{ dv.tenLoai }}</span>
                     </td>
                     <td class="service-status">
-                      <span class="status-badge" :class="dv.trangThai === 1 ? 'active' : 'inactive'">
-                        {{ dv.trangThai === 1 ? 'Hoạt động' : 'Tạm ngừng' }}
+                      <span
+                        class="status-badge"
+                        :class="dv.trangThai === 1 ? 'active' : 'inactive'"
+                      >
+                        {{ dv.trangThai === 1 ? "Hoạt động" : "Tạm ngừng" }}
                       </span>
                     </td>
                     <td class="service-actions">
                       <div class="action-buttons">
-                        <button class="btn btn-sm btn-info" @click="editDichVu(dv)" title="Chỉnh sửa">
+                        <button
+                          class="btn btn-sm btn-info"
+                          @click="editDichVu(dv)"
+                          title="Chỉnh sửa"
+                        >
                           <i class="fa fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm" :class="dv.trangThai === 1 ? 'btn-warning' : 'btn-success'"
-                          @click="toggleTrangThai(dv)" :title="dv.trangThai === 1 ? 'Tạm ngừng' : 'Kích hoạt'">
-                          <i class="fa" :class="dv.trangThai === 1 ? 'fa-pause' : 'fa-play'"></i>
+                        <button
+                          class="btn btn-sm"
+                          :class="
+                            dv.trangThai === 1 ? 'btn-warning' : 'btn-success'
+                          "
+                          @click="toggleTrangThai(dv)"
+                          :title="
+                            dv.trangThai === 1 ? 'Tạm ngừng' : 'Kích hoạt'
+                          "
+                        >
+                          <i
+                            class="fa"
+                            :class="dv.trangThai === 1 ? 'fa-pause' : 'fa-play'"
+                          ></i>
                         </button>
                       </div>
                     </td>
@@ -217,19 +343,37 @@
 
             <!-- Phân trang -->
             <div v-if="filteredDichVus.length > 0" class="pagination-container">
-              <button class="btn btn-outline-primary" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+              <button
+                class="btn btn-outline-primary"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
                 <i class="fa fa-angle-left"></i>
                 Trước
               </button>
-              <span class="page-info">Trang {{ currentPage }} / {{ totalPages }}</span>
+              <span class="page-info"
+                >Trang {{ currentPage }} / {{ totalPages }}</span
+              >
               <div class="page-numbers">
-                <button v-for="page in visiblePages" :key="page" class="btn btn-sm page-btn"
-                  :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'" @click="goToPage(page)">
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  class="btn btn-sm page-btn"
+                  :class="
+                    page === currentPage
+                      ? 'btn-primary'
+                      : 'btn-outline-secondary'
+                  "
+                  @click="goToPage(page)"
+                >
                   {{ page }}
                 </button>
               </div>
-              <button class="btn btn-outline-primary" :disabled="currentPage === totalPages"
-                @click="goToPage(currentPage + 1)">
+              <button
+                class="btn btn-outline-primary"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)"
+              >
                 Sau
                 <i class="fa fa-angle-right"></i>
               </button>
@@ -241,7 +385,12 @@
 
     <!-- Toast Notifications -->
     <div class="toast-container">
-      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
+      <div
+        v-for="toast in toasts"
+        :key="toast.id"
+        class="toast"
+        :class="toast.type"
+      >
         <i class="fas" :class="getToastIcon(toast.type)"></i>
         {{ toast.message }}
       </div>
@@ -289,27 +438,31 @@ const currentPage = ref(1);
 const pageSize = ref(5);
 
 // Toast methods
-const showToast = (message, type = 'info') => {
+const showToast = (message, type = "info") => {
   const toast = {
     id: Date.now(),
     message,
-    type
-  }
-  toasts.value.push(toast)
+    type,
+  };
+  toasts.value.push(toast);
   setTimeout(() => {
-    const index = toasts.value.findIndex(t => t.id === toast.id)
-    if (index > -1) toasts.value.splice(index, 1)
-  }, 3000)
-}
+    const index = toasts.value.findIndex((t) => t.id === toast.id);
+    if (index > -1) toasts.value.splice(index, 1);
+  }, 3000);
+};
 
 const getToastIcon = (type) => {
   switch (type) {
-    case 'success': return 'fa-check-circle'
-    case 'error': return 'fa-exclamation-circle'
-    case 'warning': return 'fa-exclamation-triangle'
-    default: return 'fa-info-circle'
+    case "success":
+      return "fa-check-circle";
+    case "error":
+      return "fa-exclamation-circle";
+    case "warning":
+      return "fa-exclamation-triangle";
+    default:
+      return "fa-info-circle";
   }
-}
+};
 
 // Computed properties for filtering
 const filteredDichVus = computed(() => {
@@ -317,7 +470,7 @@ const filteredDichVus = computed(() => {
 
   // Filter by name
   if (searchName.value.trim()) {
-    filtered = filtered.filter(dv =>
+    filtered = filtered.filter((dv) =>
       dv.tenDichVu.toLowerCase().includes(searchName.value.trim().toLowerCase())
     );
   }
@@ -326,48 +479,82 @@ const filteredDichVus = computed(() => {
   const min = Number(priceMin.value);
   const max = Number(priceMax.value);
 
-  if (!isNaN(min) && priceMin.value !== "" && (isNaN(max) || priceMax.value === "")) {
-    filtered = filtered.filter(dv => dv.gia >= min);
+  if (
+    !isNaN(min) &&
+    priceMin.value !== "" &&
+    (isNaN(max) || priceMax.value === "")
+  ) {
+    filtered = filtered.filter((dv) => dv.gia >= min);
   }
 
-  if (!isNaN(max) && priceMax.value !== "" && (isNaN(min) || priceMin.value === "")) {
-    filtered = filtered.filter(dv => dv.gia <= max);
+  if (
+    !isNaN(max) &&
+    priceMax.value !== "" &&
+    (isNaN(min) || priceMin.value === "")
+  ) {
+    filtered = filtered.filter((dv) => dv.gia <= max);
   }
 
-  if (!isNaN(min) && priceMin.value !== "" && !isNaN(max) && priceMax.value !== "") {
-    filtered = filtered.filter(dv => dv.gia >= min && dv.gia <= max);
+  if (
+    !isNaN(min) &&
+    priceMin.value !== "" &&
+    !isNaN(max) &&
+    priceMax.value !== ""
+  ) {
+    filtered = filtered.filter((dv) => dv.gia >= min && dv.gia <= max);
   }
 
   // Filter by service type
   if (selectedLoaiDichVu.value !== "") {
-    filtered = filtered.filter(dv => dv.loaiDichVuID === Number(selectedLoaiDichVu.value));
+    filtered = filtered.filter(
+      (dv) => dv.loaiDichVuID === Number(selectedLoaiDichVu.value)
+    );
   }
 
   // Filter by status
   if (selectedTrangThai.value !== "") {
-    filtered = filtered.filter(dv => dv.trangThai === Number(selectedTrangThai.value));
+    filtered = filtered.filter(
+      (dv) => dv.trangThai === Number(selectedTrangThai.value)
+    );
   }
 
   // Filter by time range
   const timeMinVal = Number(timeMin.value);
   const timeMaxVal = Number(timeMax.value);
 
-  if (!isNaN(timeMinVal) && timeMin.value !== "" && (isNaN(timeMaxVal) || timeMax.value === "")) {
-    filtered = filtered.filter(dv => dv.thoiGian >= timeMinVal);
+  if (
+    !isNaN(timeMinVal) &&
+    timeMin.value !== "" &&
+    (isNaN(timeMaxVal) || timeMax.value === "")
+  ) {
+    filtered = filtered.filter((dv) => dv.thoiGian >= timeMinVal);
   }
 
-  if (!isNaN(timeMaxVal) && timeMax.value !== "" && (isNaN(timeMinVal) || timeMin.value === "")) {
-    filtered = filtered.filter(dv => dv.thoiGian <= timeMaxVal);
+  if (
+    !isNaN(timeMaxVal) &&
+    timeMax.value !== "" &&
+    (isNaN(timeMinVal) || timeMin.value === "")
+  ) {
+    filtered = filtered.filter((dv) => dv.thoiGian <= timeMaxVal);
   }
 
-  if (!isNaN(timeMinVal) && timeMin.value !== "" && !isNaN(timeMaxVal) && timeMax.value !== "") {
-    filtered = filtered.filter(dv => dv.thoiGian >= timeMinVal && dv.thoiGian <= timeMaxVal);
+  if (
+    !isNaN(timeMinVal) &&
+    timeMin.value !== "" &&
+    !isNaN(timeMaxVal) &&
+    timeMax.value !== ""
+  ) {
+    filtered = filtered.filter(
+      (dv) => dv.thoiGian >= timeMinVal && dv.thoiGian <= timeMaxVal
+    );
   }
 
   return filtered;
 });
 
-const totalPages = computed(() => Math.ceil(filteredDichVus.value.length / pageSize.value));
+const totalPages = computed(() =>
+  Math.ceil(filteredDichVus.value.length / pageSize.value)
+);
 
 const paginatedDichVus = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
@@ -380,27 +567,33 @@ const visiblePages = computed(() => {
   const delta = 2;
 
   let pages = [];
-  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
+  for (
+    let i = Math.max(1, current - delta);
+    i <= Math.min(total, current + delta);
+    i++
+  ) {
     pages.push(i);
   }
 
   if (pages[0] > 1) {
-    if (pages[0] > 2) pages.unshift('...');
+    if (pages[0] > 2) pages.unshift("...");
     pages.unshift(1);
   }
 
   if (pages[pages.length - 1] < total) {
-    if (pages[pages.length - 1] < total - 1) pages.push('...');
+    if (pages[pages.length - 1] < total - 1) pages.push("...");
     pages.push(total);
   }
 
-  return pages.filter(page => page !== '...' || pages.indexOf(page) === pages.lastIndexOf(page));
+  return pages.filter(
+    (page) => page !== "..." || pages.indexOf(page) === pages.lastIndexOf(page)
+  );
 });
 
 // Filter methods
 const clearSearch = () => {
-  searchName.value = '';
-}
+  searchName.value = "";
+};
 
 const resetFilters = () => {
   searchName.value = "";
@@ -411,26 +604,26 @@ const resetFilters = () => {
   timeMin.value = "";
   timeMax.value = "";
   currentPage.value = 1;
-}
+};
 
 // Utility methods
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
   }).format(value);
-}
+};
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('vi-VN');
-}
+  return new Date(dateString).toLocaleDateString("vi-VN");
+};
 
 const handleFileChange = (e) => {
   selectedImage.value = e.target.files[0];
 };
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value && page !== '...') {
+  if (page >= 1 && page <= totalPages.value && page !== "...") {
     currentPage.value = page;
   }
 };
@@ -441,10 +634,10 @@ const fetchDichVus = async () => {
     loading.value = true;
     const data = await apiClient.get("/DichVu/all");
     dichVus.value = data;
-    showToast('Tải danh sách dịch vụ thành công', 'success');
+    showToast("Tải danh sách dịch vụ thành công", "success");
   } catch (error) {
     console.error("Lỗi lấy danh sách dịch vụ:", error);
-    showToast('Lỗi khi tải danh sách dịch vụ', 'error');
+    showToast("Lỗi khi tải danh sách dịch vụ", "error");
   } finally {
     loading.value = false;
   }
@@ -456,19 +649,19 @@ const fetchLoaiDichVus = async () => {
     loaiDichVus.value = data;
   } catch (error) {
     console.error("Lỗi lấy loại dịch vụ:", error);
-    showToast('Lỗi khi tải loại dịch vụ', 'error');
+    showToast("Lỗi khi tải loại dịch vụ", "error");
   }
 };
 
 const saveDichVu = async () => {
   // Validation
   if (dichVu.value.gia < 0) {
-    showToast("Giá dịch vụ không được âm", 'warning');
+    showToast("Giá dịch vụ không được âm", "warning");
     return;
   }
 
   if (dichVu.value.thoiGian < 0) {
-    showToast("Thời gian không được âm", 'warning');
+    showToast("Thời gian không được âm", "warning");
     return;
   }
 
@@ -492,10 +685,10 @@ const saveDichVu = async () => {
 
     if (isEditing.value) {
       await apiClient.put(`/DichVu/${payload.dichVuID}`, payload);
-      showToast("Cập nhật dịch vụ thành công!", 'success');
+      showToast("Cập nhật dịch vụ thành công!", "success");
     } else {
       await apiClient.post("/DichVu", payload);
-      showToast("Thêm dịch vụ thành công!", 'success');
+      showToast("Thêm dịch vụ thành công!", "success");
     }
 
     resetForm();
@@ -503,7 +696,7 @@ const saveDichVu = async () => {
     await fetchDichVus();
   } catch (error) {
     console.error("Lỗi lưu dịch vụ:", error);
-    showToast("Lỗi khi lưu dịch vụ!", 'error');
+    showToast("Lỗi khi lưu dịch vụ!", "error");
   } finally {
     loading.value = false;
   }
@@ -513,7 +706,9 @@ const editDichVu = (dv) => {
   dichVu.value = { ...dv };
   isEditing.value = true;
   // Scroll to form
-  document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+  document
+    .querySelector(".form-section")
+    .scrollIntoView({ behavior: "smooth" });
 };
 
 const resetForm = () => {
@@ -533,17 +728,17 @@ const resetForm = () => {
 };
 
 const toggleTrangThai = async (dv) => {
-  const action = dv.trangThai === 1 ? 'tạm ngừng' : 'kích hoạt';
+  const action = dv.trangThai === 1 ? "tạm ngừng" : "kích hoạt";
 
   const result = await Swal.fire({
     title: `Xác nhận ${action}`,
     text: `Bạn có chắc chắn muốn ${action} dịch vụ "${dv.tenDichVu}"?`,
-    icon: 'warning',
+    icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
     confirmButtonText: `Có, ${action}!`,
-    cancelButtonText: 'Hủy'
+    cancelButtonText: "Hủy",
   });
 
   if (result.isConfirmed) {
@@ -551,18 +746,34 @@ const toggleTrangThai = async (dv) => {
       const updatedDv = { ...dv, trangThai: dv.trangThai === 1 ? 0 : 1 };
       await apiClient.put(`/DichVu/${dv.dichVuID}`, updatedDv);
       await fetchDichVus();
-      showToast(`${action.charAt(0).toUpperCase() + action.slice(1)} dịch vụ thành công!`, 'success');
+      showToast(
+        `${
+          action.charAt(0).toUpperCase() + action.slice(1)
+        } dịch vụ thành công!`,
+        "success"
+      );
     } catch (error) {
       console.error("Lỗi cập nhật trạng thái:", error);
-      showToast("Lỗi khi cập nhật trạng thái", 'error');
+      showToast("Lỗi khi cập nhật trạng thái", "error");
     }
   }
 };
 
 // Watchers for real-time filtering
-watch([searchName, priceMin, priceMax, selectedLoaiDichVu, selectedTrangThai, timeMin, timeMax], () => {
-  currentPage.value = 1; // Reset to first page when filters change
-});
+watch(
+  [
+    searchName,
+    priceMin,
+    priceMax,
+    selectedLoaiDichVu,
+    selectedTrangThai,
+    timeMin,
+    timeMax,
+  ],
+  () => {
+    currentPage.value = 1; // Reset to first page when filters change
+  }
+);
 
 // Lifecycle
 onMounted(() => {
@@ -577,7 +788,7 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .header {
@@ -783,7 +994,7 @@ onMounted(() => {
 }
 
 .form-label::before {
-  content: '';
+  content: "";
   width: 3px;
   height: 16px;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -852,13 +1063,18 @@ onMounted(() => {
 }
 
 .btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.6s;
 }
 
