@@ -1,208 +1,398 @@
 <template>
-  <div class="container py-5">
-    <h2 class="fw-bold text-primary mb-4 text-center">
-      <i class="fas fa-star-half-alt me-2"></i> Quản lý đánh giá khách hàng
-    </h2>
+  <div class="review-management">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center">
+              <div class="header-icon me-3">
+                <i class="fas fa-star-half-alt"></i>
+              </div>
+              <div>
+                <h1 class="page-title mb-2">Quản lý đánh giá khách hàng</h1>
+                <p class="page-subtitle mb-0">Theo dõi và quản lý phản hồi từ khách hàng</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Bộ lọc nâng cao -->
-    <div class="card shadow-sm p-4 mb-4 rounded-4 bg-light">
-      <div class="row gy-3 align-items-end">
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Trạng thái đánh giá:</label>
-          <div class="btn-group w-100">
-            <button
-              class="btn"
-              :class="{
-                'btn-success': filter === 'all',
-                'btn-outline-secondary': filter !== 'all',
-              }"
-              @click="filter = 'all'"
+    <div class="container">
+      <!-- Advanced Filter Section -->
+      <div class="filter-section">
+        <div class="card shadow-lg border-0">
+          <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Bộ lọc nâng cao</h5>
+            <button 
+              @click="resetFilters" 
+              class="btn btn-light btn-sm d-flex align-items-center"
+              title="Làm mới bộ lọc"
             >
-              Tất cả
+              <i class="fas fa-sync-alt me-1"></i>
+              Làm mới
             </button>
-            <button
-              class="btn"
-              :class="{
-                'btn-warning': filter === 'chuaduyet',
-                'btn-outline-secondary': filter !== 'chuaduyet',
-              }"
-              @click="filter = 'chuaduyet'"
-            >
-              Chưa duyệt
-            </button>
-            <button
-              class="btn"
-              :class="{
-                'btn-outline-success': filter === 'daduyet',
-                'btn-outline-secondary': filter !== 'daduyet',
-              }"
-              @click="filter = 'daduyet'"
-            >
-              Đã duyệt
-            </button>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <!-- Status Filter -->
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Trạng thái đánh giá</label>
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check" name="statusFilter" id="all" v-model="filter" value="all">
+                  <label class="btn btn-outline-primary" for="all">
+                    <i class="fas fa-list me-2"></i>Tất cả
+                  </label>
+                  <input type="radio" class="btn-check" name="statusFilter" id="pending" v-model="filter" value="chuaduyet">
+                  <label class="btn btn-outline-warning" for="pending">
+                    <i class="fas fa-clock me-2"></i>Chưa duyệt
+                  </label>
+                  <input type="radio" class="btn-check" name="statusFilter" id="approved" v-model="filter" value="daduyet">
+                  <label class="btn btn-outline-success" for="approved">
+                    <i class="fas fa-check me-2"></i>Đã duyệt
+                  </label>
+                </div>
+              </div>
+
+              <!-- Search Filter -->
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Tên người dùng</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control border-start-0 ps-0"
+                    placeholder="Nhập tên người dùng..."
+                    v-model="searchName"
+                  />
+                  <button 
+                    v-if="searchName" 
+                    @click="searchName = ''" 
+                    class="btn btn-outline-secondary border-start-0"
+                    type="button"
+                    title="Xóa tìm kiếm"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Star Rating Filter -->
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Lọc theo số sao</label>
+                <div class="star-filter-container">
+                  <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="starFilter" id="allStars" v-model="starFilter" value="all">
+                    <label class="btn btn-outline-secondary" for="allStars">
+                      <i class="fas fa-star-half-alt me-2"></i>Tất cả
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star5" v-model="starFilter" value="5">
+                    <label class="btn btn-outline-warning" for="star5">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 5" :key="n"></i>
+                      </span>
+                      <span class="ms-1">5 sao</span>
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star4" v-model="starFilter" value="4">
+                    <label class="btn btn-outline-warning" for="star4">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 4" :key="n"></i>
+                        <i class="far fa-star"></i>
+                      </span>
+                      <span class="ms-1">4 sao</span>
+                    </label>
+                  </div>
+                  <div class="btn-group w-100 mt-2" role="group">
+                    <input type="radio" class="btn-check" name="starFilter" id="star3" v-model="starFilter" value="3">
+                    <label class="btn btn-outline-warning" for="star3">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 3" :key="n"></i>
+                        <i class="far fa-star" v-for="n in 2" :key="n"></i>
+                      </span>
+                      <span class="ms-1">3 sao</span>
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star2" v-model="starFilter" value="2">
+                    <label class="btn btn-outline-warning" for="star2">
+                      <span class="stars-display">
+                        <i class="fas fa-star" v-for="n in 2" :key="n"></i>
+                        <i class="far fa-star" v-for="n in 3" :key="n"></i>
+                      </span>
+                      <span class="ms-1">2 sao</span>
+                    </label>
+                    <input type="radio" class="btn-check" name="starFilter" id="star1" v-model="starFilter" value="1">
+                    <label class="btn btn-outline-danger" for="star1">
+                      <span class="stars-display">
+                        <i class="fas fa-star"></i>
+                        <i class="far fa-star" v-for="n in 4" :key="n"></i>
+                      </span>
+                      <span class="ms-1">1 sao</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Date Range -->
+              <div class="col-lg-3">
+                <label class="form-label fw-semibold">Từ ngày</label>
+                <input 
+                  type="date" 
+                  class="form-control" 
+                  v-model="startDate" 
+                  :max="endDate" 
+                />
+              </div>
+
+              <div class="col-lg-3">
+                <label class="form-label fw-semibold">Đến ngày</label>
+                <input 
+                  type="date" 
+                  class="form-control" 
+                  v-model="endDate" 
+                  :min="startDate" 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Tabs Section - Horizontal Layout -->
+      <div class="service-filter-section">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h6 class="mb-0 fw-semibold text-primary">
+                <i class="fas fa-spa me-2"></i>Lọc theo dịch vụ
+              </h6>
+              <div class="d-flex align-items-center gap-2">
+                <small class="text-muted">{{ danhSachLoc.length }} kết quả</small>
+                <button 
+                  v-if="starFilter !== 'all'" 
+                  @click="starFilter = 'all'" 
+                  class="btn btn-outline-secondary btn-sm me-2"
+                  title="Xóa lọc sao"
+                >
+                  <i class="fas fa-star me-1"></i>Xóa lọc sao
+                </button>
+                <button 
+                  v-if="selectedDichVu !== 'all'" 
+                  @click="selectedDichVu = 'all'" 
+                  class="btn btn-outline-secondary btn-sm"
+                  title="Xóa lọc dịch vụ"
+                >
+                  <i class="fas fa-times me-1"></i>Xóa lọc
+                </button>
+              </div>
+            </div>
+            
+            <div class="service-tabs-horizontal">
+              <div class="nav nav-pills flex-nowrap overflow-auto" role="tablist">
+                <button
+                  class="nav-link flex-shrink-0"
+                  :class="{ active: selectedDichVu === 'all' }"
+                  @click="selectedDichVu = 'all'"
+                >
+                  <i class="fas fa-th-large me-1"></i>
+                  Tất cả dịch vụ
+                </button>
+                <button
+                  v-for="dv in dichVuTabs"
+                  :key="dv"
+                  class="nav-link flex-shrink-0"
+                  :class="{ active: selectedDichVu === dv }"
+                  @click="selectedDichVu = dv"
+                >
+                  <i class="fas fa-spa me-1"></i>
+                  {{ dv }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Table -->
+      <div class="reviews-section">
+        <div v-if="danhSachLoc.length === 0" class="empty-state">
+          <div class="card shadow-sm border-0 text-center py-5">
+            <div class="card-body">
+              <div class="empty-icon mb-3">
+                <i class="fas fa-comments text-muted"></i>
+              </div>
+              <h4 class="text-muted mb-2">Không có đánh giá phù hợp</h4>
+              <p class="text-muted mb-3">Thử thay đổi bộ lọc để xem thêm đánh giá</p>
+              <button @click="resetFilters" class="btn btn-primary">
+                <i class="fas fa-sync-alt me-2"></i>Làm mới bộ lọc
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="col-md-3">
-          <label class="form-label fw-semibold">Tên người dùng:</label>
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Nhập tên..."
-            v-model="searchName"
-          />
-        </div>
-
-        <div class="col-md-2">
-          <label class="form-label fw-semibold">Từ ngày:</label>
-          <input type="date" class="form-control" v-model="startDate" />
-        </div>
-        <div class="col-md-2">
-          <label class="form-label fw-semibold">Đến ngày:</label>
-          <input type="date" class="form-control" v-model="endDate" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabs dịch vụ -->
-    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-      <button
-        class="btn d-flex align-items-center gap-2"
-        :class="{ 'btn-primary': showTabs, 'btn-outline-secondary': !showTabs }"
-        @click="toggleTabs"
-      >
-        <span>Tất cả dịch vụ</span>
-        <i
-          class="fas"
-          :class="
-            showTabs
-              ? 'fa-chevron-down rotate-down'
-              : 'fa-chevron-right rotate-right'
-          "
-        ></i>
-      </button>
-    </div>
-
-    <!-- Slide Tabs dịch vụ theo chiều ngang -->
-    <transition name="slide-horizontal">
-      <div
-        v-if="showTabs"
-        class="d-flex flex-wrap justify-content-center gap-2 mb-4"
-      >
-        <button
-          v-for="dv in dichVuTabs"
-          :key="dv"
-          class="btn"
-          :class="{
-            'btn-info': selectedDichVu === dv,
-            'btn-outline-secondary': selectedDichVu !== dv,
-          }"
-          @click="selectedDichVu = dv"
-        >
-          {{ dv }}
-        </button>
-      </div>
-    </transition>
-
-    <br />
-    <!-- Danh sách đánh giá -->
-    <div
-      v-if="danhSachLoc.length === 0"
-      class="text-center my-5 text-secondary fs-5"
-    >
-      <i class="fas fa-circle-info fa-2x text-muted mb-3 d-block"></i>
-      Không có đánh giá phù hợp.
-    </div>
-
-    <div v-else class="table-responsive shadow rounded-4 overflow-hidden">
-      <table class="table table-bordered table-hover align-middle mb-0">
-        <thead class="bg-gradient bg-primary text-white">
-          <tr class="text-center">
-            <th><i class="fas fa-briefcase me-1"></i> Dịch vụ</th>
-            <th><i class="fas fa-user me-1"></i> Người đánh giá</th>
-            <th><i class="fas fa-star me-1"></i> Sao</th>
-            <th><i class="fas fa-comment-dots me-1"></i> Nội dung</th>
-            <th><i class="fas fa-calendar-day me-1"></i> Ngày</th>
-            <th><i class="fas fa-check-circle me-1"></i> Trạng thái</th>
-            <th><i class="fas fa-tools me-1"></i> Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="dg in danhSachLoc" :key="dg.id" class="text-center">
-            <td class="fw-semibold text-primary">
-              {{ dg.dichVu?.tenDichVu || "Không rõ" }}
-            </td>
-            <td>
-              <span v-if="dg.anDanh" class="text-muted fst-italic"
-                ><i class="fas fa-user-secret me-1"></i>Ẩn danh</span
+        <div v-else class="table-section">
+          <div class="card shadow-lg border-0">
+            <div class="card-header bg-gradient-info text-white d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-table me-2"></i>
+                Danh sách đánh giá ({{ danhSachLoc.length }} kết quả)
+              </h5>
+              <button 
+                @click="loadDanhSach" 
+                class="btn btn-light btn-sm d-flex align-items-center"
+                title="Tải lại dữ liệu"
+                :disabled="isLoading"
               >
-              <span v-else>{{ dg.user?.name || "Chưa rõ" }}</span>
-            </td>
-            <td>
-              <span v-for="n in 5" :key="n">
-                <i
-                  class="fa-star fas"
-                  :class="
-                    n <= dg.soSao ? 'text-warning' : 'text-secondary opacity-25'
-                  "
-                ></i>
-              </span>
-            </td>
-            <td class="text-wrap text-start px-3" style="max-width: 300px">
-              <span>{{ dg.noiDung || "(Không có)" }}</span>
-            </td>
-            <td>{{ formatDate(dg.ngayTao) }}</td>
-            <td>
-              <span
-                class="badge rounded-pill px-3 py-2"
-                :class="dg.daDuyet ? 'bg-success' : 'bg-warning text-dark'"
-              >
-                <i
-                  :class="
-                    dg.daDuyet
-                      ? 'fas fa-check-circle me-1'
-                      : 'fas fa-hourglass-start me-1'
-                  "
-                ></i>
-                {{ dg.daDuyet ? "Đã duyệt" : "Chưa duyệt" }}
-              </span>
-            </td>
-            <td>
-              <div class="d-flex justify-content-center gap-2">
-                <button
-                  v-if="!dg.daDuyet"
-                  @click="duyetDanhGia(dg.id)"
-                  class="btn btn-sm btn-outline-success rounded-pill"
-                  title="Duyệt đánh giá"
-                >
-                  <i class="fas fa-check"></i>
-                </button>
-                <button
-                  @click="toggleTrangThai(dg.id)"
-                  class="btn btn-sm btn-outline-secondary rounded-pill"
-                  :title="dg.isActive ? 'Ẩn đánh giá' : 'Hiện lại đánh giá'"
-                >
-                  <i
-                    :class="dg.isActive ? 'fas fa-eye-slash' : 'fas fa-eye'"
-                  ></i>
-                </button>
+                <i class="fas fa-sync-alt me-1" :class="{ 'fa-spin': isLoading }"></i>
+                {{ isLoading ? 'Đang tải...' : 'Tải lại' }}
+              </button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive" style="max-height: 70vh;">
+                <table class="table table-hover mb-0 review-table">
+                  <thead class="table-dark sticky-top">
+                    <tr>
+                      <th scope="col" class="text-center" style="width: 60px;">#</th>
+                      <th scope="col" style="width: 200px;">Dịch vụ</th>
+                      <th scope="col" style="width: 180px;">Người dùng</th>
+                      <th scope="col" style="width: 140px;">Đánh giá</th>
+                      <th scope="col" style="width: 300px;">Nội dung</th>
+                      <th scope="col" style="width: 160px;">Ngày tạo</th>
+                      <th scope="col" style="width: 130px;">Trạng thái</th>
+                      <th scope="col" class="text-center" style="width: 120px;">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(dg, index) in danhSachLocSorted" :key="dg.id" class="review-row">
+                      <td class="text-center align-middle">
+                        <span class="badge bg-secondary">{{ index + 1 }}</span>
+                      </td>
+                      
+                      <td class="align-middle">
+                        <span class="badge bg-info bg-opacity-10 text-info p-2">
+                          <i class="fas fa-spa me-1"></i>
+                          {{ dg.dichVu?.tenDichVu || "Không rõ" }}
+                        </span>
+                      </td>
+                      
+                      <td class="align-middle">
+                        <div class="d-flex align-items-center">
+                          <div class="user-avatar me-2">
+                            <i class="fas fa-user text-white"></i>
+                          </div>
+                          <div>
+                            <span v-if="dg.anDanh" class="text-muted fst-italic small">
+                              <i class="fas fa-user-secret me-1"></i>Ẩn danh
+                            </span>
+                            <span v-else class="fw-medium">{{ dg.user?.name || "Chưa rõ" }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td class="align-middle">
+                        <div class="rating-display">
+                          <div class="stars mb-1">
+                            <i
+                              v-for="n in 5"
+                              :key="n"
+                              class="fas fa-star"
+                              :class="n <= dg.soSao ? 'text-warning' : 'text-muted opacity-25'"
+                            ></i>
+                          </div>
+                          <small class="text-muted">{{ dg.soSao }}/5</small>
+                        </div>
+                      </td>
+                      
+                      <td class="align-middle">
+                        <div class="review-content">
+                          <p class="mb-0 text-truncate-3">{{ dg.noiDung || "(Không có nội dung)" }}</p>
+                        </div>
+                      </td>
+                      
+                      <td class="align-middle">
+                        <small class="text-muted d-flex align-items-center">
+                          <i class="fas fa-calendar-alt me-1"></i>
+                          {{ formatDate(dg.ngayTao) }}
+                        </small>
+                      </td>
+                      
+                      <td class="align-middle">
+                        <span
+                          class="badge"
+                          :class="dg.daDuyet ? 'bg-success' : 'bg-warning'"
+                        >
+                          <i
+                            :class="dg.daDuyet ? 'fas fa-check-circle' : 'fas fa-hourglass-start'"
+                            class="me-1"
+                          ></i>
+                          {{ dg.daDuyet ? "Đã duyệt" : "Chưa duyệt" }}
+                        </span>
+                      </td>
+                      
+                      <td class="text-center align-middle">
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button
+                            v-if="!dg.daDuyet"
+                            @click="duyetDanhGia(dg.id)"
+                            class="btn btn-success btn-sm"
+                            title="Duyệt đánh giá"
+                          >
+                            <i class="fas fa-check"></i>
+                          </button>
+                          <button
+                            @click="toggleTrangThai(dg.id)"
+                            class="btn btn-secondary btn-sm"
+                            :title="dg.isActive ? 'Ẩn đánh giá' : 'Hiển thị lại đánh giá'"
+                          >
+                            <i :class="dg.isActive ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <br />
-
-    <!-- Biểu đồ -->
-    <div class="row mb-5">
-      <div class="col-md-6">
-        <h5 class="text-center mb-3">📈 Dịch vụ được đánh giá nhiều</h5>
-        <BarChart :data="chartDataSoLuong" :options="chartOptions" />
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="col-md-6">
-        <h5 class="text-center mb-3">🌟 Dịch vụ được đánh giá tốt</h5>
-        <BarChart :data="chartDataTrungBinh" :options="chartOptions" />
+
+      <!-- Charts Section -->
+      <div class="charts-section mt-5">
+        <div class="row">
+          <div class="col-12 mb-4">
+            <h2 class="text-white fw-bold">
+              <i class="fas fa-chart-bar me-2"></i>Thống kê đánh giá
+            </h2>
+          </div>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="card shadow-lg border-0 h-100">
+              <div class="card-header bg-gradient-primary text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-chart-column me-2"></i>Dịch vụ được đánh giá nhiều
+                </h5>
+              </div>
+              <div class="card-body">
+                <BarChart :data="chartDataSoLuong" :options="chartOptions" />
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card shadow-lg border-0 h-100">
+              <div class="card-header bg-gradient-success text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-star me-2"></i>Dịch vụ được đánh giá tốt
+                </h5>
+              </div>
+              <div class="card-body">
+                <BarChart :data="chartDataTrungBinh" :options="chartOptions" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -210,10 +400,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-
 import BarChart from "@/components/BarChart.vue";
 import axiosClient from "../utils/axiosClient";
-const showTabs = ref(false);
 
 const danhSach = ref([]);
 const filter = ref("all");
@@ -221,6 +409,8 @@ const searchName = ref("");
 const startDate = ref("");
 const endDate = ref("");
 const selectedDichVu = ref("all");
+const starFilter = ref("all");
+const isLoading = ref(false);
 
 const chartDataSoLuong = ref({ labels: [], datasets: [] });
 const chartDataTrungBinh = ref({ labels: [], datasets: [] });
@@ -233,19 +423,27 @@ const chartOptions = {
 
 onMounted(async () => await loadDanhSach());
 
-const toggleTabs = () => {
-  showTabs.value = !showTabs.value;
-  selectedDichVu.value = "all";
-};
-
 const loadDanhSach = async () => {
   try {
-    const res = await axiosClient.get("DanhGia/admin");
+    isLoading.value = true;
+    const res = await axiosClient.get("DanhGia/adminn");
     danhSach.value = res;
     updateCharts();
   } catch (err) {
     console.error("Lỗi khi tải đánh giá:", err);
+  } finally {
+    isLoading.value = false;
   }
+};
+
+// Reset all filters to default values
+const resetFilters = () => {
+  filter.value = "all";
+  searchName.value = "";
+  startDate.value = "";
+  endDate.value = "";
+  selectedDichVu.value = "all";
+  starFilter.value = "all";
 };
 
 const duyetDanhGia = async (id) => {
@@ -302,7 +500,22 @@ const danhSachLoc = computed(() => {
       selectedDichVu.value === "all" ||
       d.dichVu?.tenDichVu === selectedDichVu.value;
 
-    return matchFilter && matchSearch && matchDate && matchDichVu;
+    const matchStar =
+      starFilter.value === "all" ||
+      d.soSao === parseInt(starFilter.value);
+
+    return matchFilter && matchSearch && matchDate && matchDichVu && matchStar;
+  });
+});
+
+// Sắp xếp để đưa đánh giá chưa duyệt lên đầu
+const danhSachLocSorted = computed(() => {
+  return [...danhSachLoc.value].sort((a, b) => {
+    // Đánh giá chưa duyệt lên đầu
+    if (!a.daDuyet && b.daDuyet) return -1;
+    if (a.daDuyet && !b.daDuyet) return 1;
+    // Sắp xếp theo ngày tạo (mới nhất trước)
+    return new Date(b.ngayTao) - new Date(a.ngayTao);
   });
 });
 
@@ -324,62 +537,292 @@ const updateCharts = () => {
   chartDataSoLuong.value = {
     labels,
     datasets: [
-      { label: "Số lượt đánh giá", backgroundColor: "#4caf50", data: counts },
+      { label: "Số lượt đánh giá", backgroundColor: "#667eea", data: counts },
     ],
   };
 
   chartDataTrungBinh.value = {
     labels,
     datasets: [
-      { label: "Điểm trung bình", backgroundColor: "#ff9800", data: averages },
+      { label: "Điểm trung bình", backgroundColor: "#f093fb", data: averages },
     ],
   };
 };
 </script>
 
 <style scoped>
-.review-card {
-  transition: transform 0.2s, box-shadow 0.3s;
-}
-.review-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-}
-input.form-control {
-  border-radius: 2rem;
-}
-.btn-group .btn {
-  min-width: 90px;
-}
-/* Gợi ý nâng cao cho table */
-.table thead th {
-  vertical-align: middle;
-  font-weight: 600;
-  font-size: 15px;
-}
-.table tbody td {
-  font-size: 14px;
+/* Global Styles */
+.review-management {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Slide ngang */
-.slide-horizontal-enter-active,
-.slide-horizontal-leave-active {
+/* Header Section */
+.page-header {
+  padding: 3rem 0;
+  color: white;
+}
+
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  backdrop-filter: blur(10px);
+}
+
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Filter Section */
+.filter-section {
+  margin-top: -2rem;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+/* Service Filter Section */
+.service-filter-section {
+  margin-bottom: 2rem;
+}
+
+.service-tabs-horizontal {
+  position: relative;
+}
+
+.service-tabs-horizontal .nav {
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #667eea transparent;
+}
+
+.service-tabs-horizontal .nav::-webkit-scrollbar {
+  height: 4px;
+}
+
+.service-tabs-horizontal .nav::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 2px;
+}
+
+.service-tabs-horizontal .nav::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 2px;
+}
+
+.service-tabs-horizontal .nav-link {
+  border-radius: 20px;
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
   transition: all 0.3s ease;
-  transform-origin: left;
-}
-.slide-horizontal-enter-from,
-.slide-horizontal-leave-to {
-  opacity: 0;
-  transform: scaleX(0);
 }
 
-/* Icon xoay mũi tên */
-.rotate-right {
-  transition: transform 0.3s ease;
-  transform: rotate(0deg);
+.service-tabs-horizontal .nav-link:hover,
+.service-tabs-horizontal .nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
-.rotate-down {
-  transition: transform 0.3s ease;
-  transform: rotate(90deg);
+
+/* Table Improvements */
+.review-table {
+  font-size: 0.9rem;
+}
+
+.review-row {
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.review-row:hover {
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%) !important;
+  box-shadow: inset 3px 0 0 #667eea;
+}
+
+.user-avatar {
+  width: 35px;
+  height: 35px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  
+line-clamp: 2; /* chuẩn mới */
+  overflow: hidden;
+  line-height: 1.4;
+  max-height: 4.2em;
+}
+
+/* Empty State */
+.empty-icon {
+  font-size: 4rem;
+  color: #6c757d;
+  opacity: 0.5;
+}
+
+/* Charts Section */
+.charts-section {
+  padding-bottom: 3rem;
+}
+
+/* Refresh Button Styles */
+.btn-light {
+  transition: all 0.3s ease;
+}
+
+.btn-light:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Star Filter Styles */
+.star-filter-container .btn-group {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.star-filter-container .btn {
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-filter-container .stars-display {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 0.75rem;
+}
+
+.star-filter-container .stars-display .fas.fa-star {
+  color: #ffc107;
+}
+
+.star-filter-container .stars-display .far.fa-star {
+  color: #dee2e6;
+}
+
+.btn-check:checked + .btn-outline-warning {
+  background: linear-gradient(135deg, #e5ff7b 0%, #e5ff7b 100%);
+  border-color: #e5ff7b;
+  color: white;
+}
+
+.btn-check:checked + .btn-outline-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+  color: white;
+}
+
+.star-filter-container .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .review-table {
+    font-size: 0.8rem;
+  }
+  
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+  
+  .text-truncate-3 {
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* chuẩn mới */
+    max-height: 2.8em;
+  }
+  
+  .service-tabs-horizontal .nav-link {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .card-header .btn {
+    align-self: flex-end;
+  }
+}
+
+/* Custom Bootstrap Overrides */
+.btn-check:checked + .btn-outline-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.btn-check:checked + .btn-outline-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  border-color: #ffc107;
+}
+
+.btn-check:checked + .btn-outline-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-color: #28a745;
 }
 </style>

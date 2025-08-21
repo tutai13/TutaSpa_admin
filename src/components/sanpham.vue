@@ -336,7 +336,7 @@
                     <div class="image-container">
                       <img
                         v-if="sp.hinhAnh"
-                        :src="sp.hinhAnh"
+                        :src="imageUrl + sp.hinhAnh"
                         :alt="sp.tenSP"
                         @error="handleImageError"
                       />
@@ -406,17 +406,13 @@
             >
               <div class="product-card-image">
                 <img
-                  v-if="sp.hinhAnh"
-                  :src="sp.hinhAnh"
+                  :src="imageUrl + (sp.hinhAnh ?? 'holder')"
                   :alt="sp.tenSP"
                   @error="handleImageError"
                 />
-                <div v-else class="no-image-placeholder">
-                  <i class="fas fa-image"></i>
-                </div>
                 <div class="product-overlay">
                   <button
-                    @click="editProduct(sp)"
+                    @click="editProduct(sp)"  
                     class="btn btn-sm btn-warning"
                   >
                     <i class="fas fa-edit"></i>
@@ -506,6 +502,9 @@
 import { ref, computed, onMounted } from "vue";
 import apiClient from "../utils/axiosClient";
 
+
+
+
 // Reactive data
 const products = ref([]);
 const categories = ref([]);
@@ -516,6 +515,8 @@ const toasts = ref([]);
 const showConfirmDelete = ref(false);
 const productToDelete = ref(null);
 
+const imageUrl = import.meta.env.VITE_BASE_URL.replace("/api", "/images/");
+console.log("Image URL:", imageUrl);
 // Form data
 const product = ref({
   productId: 0,
@@ -547,6 +548,11 @@ const filteredProducts = computed(() => {
     return matchesName && matchesPrice && matchesCategory;
   });
 });
+
+const getImageURl =  (image) => {
+  console.log("Image URL:", imageUrl + image);
+  return imageUrl + image;
+} 
 
 // Methods
 const showToast = (message, type = "info") => {

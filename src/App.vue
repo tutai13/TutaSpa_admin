@@ -70,14 +70,6 @@
               </a>
             </li>
             <li>
-              <a
-                class="dropdown-item d-flex align-items-center gap-2 text-secondary"
-                href="/ve-da-dat"
-              >
-                <i class="fas fa-tasks fs-6"></i> My Task
-              </a>
-            </li>
-            <li>
               <a class="btn btn-outline-primary w-100" href="#" @click="Logout">
                 Đăng xuất
               </a>
@@ -175,6 +167,7 @@
             <i class="fa-solid fa-comment"></i>
           </router-link>
         </template>
+
 
         <div class="menu-title">APPS</div>
 
@@ -274,8 +267,9 @@ function toggleNotifications() {
 
 async function Logout() {
   try {
+        await authAPI.logout();
     authStore.logout();
-    await authAPI.logout();
+
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user-info");
     router.push("/login");
