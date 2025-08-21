@@ -162,9 +162,6 @@
               <table class="modern-table">
                 <thead>
                   <tr>
-                    <th class="th-id">
-                      <span>ID</span>
-                    </th>
                     <th class="th-name">
                       <span>Tên Loại Dịch Vụ</span>
                     </th>
@@ -176,9 +173,6 @@
                 <tbody>
                   <tr v-for="(item, index) in loaiDichVus" :key="item.loaiDichVuID" class="table-row"
                     :style="{ animationDelay: `${index * 0.05}s` }">
-                    <td class="td-id">
-                      <div class="id-badge">{{ item.loaiDichVuID }}</div>
-                    </td>
                     <td class="td-name">
                       <div class="name-content">
                         <div class="name-text">{{ item.tenLoai }}</div>
@@ -230,7 +224,6 @@ import apiClient from "../utils/axiosClient";
 const loaiDichVus = ref([]);
 const allLoaiDichVus = ref([]);
 const form = ref({
-  loaiDichVuID: 0,
   tenLoai: ''
 });
 const isEditing = ref(false);
@@ -956,82 +949,55 @@ onMounted(() => {
 }
 
 /* Modern Table */
-.table-container-modern {
-  margin-top: 20px;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
 .modern-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
+  table-layout: auto;
 }
 
+.modern-table th,
+.modern-table td {
+  padding: 14px 20px;
+  border: none;
+  vertical-align: middle;
+  font-size: 0.95rem;
+}
+
+/* Header */
 .modern-table thead {
   background: linear-gradient(135deg, #2d3748, #4a5568);
 }
 
 .modern-table th {
-  padding: 20px 25px;
-  text-align: left;
   font-weight: 600;
   font-size: 0.95rem;
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: none;
 }
 
-.th-id {
-  width: 15%;
+/* Cột tên loại dịch vụ */
+.th-name,
+.td-name {
+  text-align: left;
+  width: 70%;
+}
+
+/* Cột hành động */
+.th-actions,
+.td-actions {
   text-align: center;
+  width: 30%;
 }
 
-.th-actions {
-  width: 20%;
-  text-align: center;
-}
-
-.modern-table tbody tr {
-  transition: all 0.3s ease;
-  border-bottom: 1px solid #e2e8f0;
-  animation: fadeInUp 0.5s ease forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.modern-table tbody tr:hover {
-  background: linear-gradient(135deg, #f7fafc, #edf2f7);
-  transform: translateX(5px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.modern-table td {
-  padding: 20px 25px;
-  border: none;
-  vertical-align: middle;
-}
-
-.td-id {
-  text-align: center;
-}
-
-.id-badge {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: inline-block;
-  min-width: 50px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+/* Nút hành động căn giữa */
+.action-buttons-modern {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* căn giữa theo chiều dọc */
+  gap: 12px;
 }
 
 .td-name .name-content {
