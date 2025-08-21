@@ -759,8 +759,8 @@ line-clamp: 2; /* chuẩn mới */
 }
 
 .btn-check:checked + .btn-outline-warning {
-  background: linear-gradient(135deg, #e5ff7b 0%, #e5ff7b 100%);
-  border-color: #e5ff7b;
+  background: linear-gradient(135deg, #f8ce14 0%, #f8ce14 100%);
+  border-color: #f8ce14;
   color: white;
 }
 
@@ -817,7 +817,7 @@ line-clamp: 2; /* chuẩn mới */
 }
 
 .btn-check:checked + .btn-outline-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  background: linear-gradient(135deg, #28a745 0%, #28a745 100%);
   border-color: #ffc107;
 }
 

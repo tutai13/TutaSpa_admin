@@ -100,7 +100,8 @@
             exact-active-class="active"
             title="Quản lý dịch vụ"
           >
-            <i class="fas fa-globe"></i>
+            <i class="fas fa-hand-sparkles"></i> 
+
           </router-link>
           <router-link
             to="/khuyenMai"
@@ -108,7 +109,7 @@
             exact-active-class="active"
             title="Quản lý Khuyến mãi"
           >
-            <i class="fas fa-shopping-cart"></i>
+            <i class="fas fa-tags"></i>  
           </router-link>
           <router-link
             to="/QuanLySanPham"
@@ -116,7 +117,7 @@
             exact-active-class="active"
             title="Quản lý Sản phẩm"
           >
-            <i class="fas fa-box"></i>
+            <i class="fas fa-pump-soap"></i> 
           </router-link>
           <router-link
             to="/employees"
@@ -134,6 +135,7 @@
           >
             <i class="fas fa-star"></i>
           </router-link>
+          
         </template>
 
         <!-- InventoryManager -->
