@@ -1,4 +1,3 @@
-```vue
 <template>
   <div class="product-management">
     <!-- Header -->
@@ -17,7 +16,7 @@
           Tìm kiếm & Lọc sản phẩm
         </h2>
         <div class="list-controls">
-          <button class="btn btn-outline-primary" @click="fetchProducts">
+          <button class="btn btn-outline-primary" @click="resetAndRefresh">
             <i class="fas fa-sync-alt"></i>
             Làm mới
           </button>
@@ -33,10 +32,10 @@
             <div class="search-container">
               <input
                 v-model="searchName"
-                @input="searchByName"
                 type="text"
                 class="search-input"
                 placeholder="Nhập tên sản phẩm..."
+                @input="searchByName"
               />
               <i class="fas fa-search search-icon"></i>
               <button
@@ -530,8 +529,8 @@ const product = ref({
 
 // Filters
 const searchName = ref("");
-const priceMin = ref(0);
-const priceMax = ref(100000000);
+const priceMin = ref(null); // Thay đổi thành null để xử lý khi để trống
+const priceMax = ref(null); // Thay đổi thành null để xử lý khi để trống
 const selectedCategory = ref("");
 
 // Image handling
@@ -542,7 +541,9 @@ const imagePreview = ref(null);
 const filteredProducts = computed(() => {
   return products.value.filter((sp) => {
     const matchesName = !searchName.value || sp.tenSP.toLowerCase().includes(searchName.value.toLowerCase());
-    const matchesPrice = sp.gia >= priceMin.value && sp.gia <= priceMax.value;
+    const matchesPrice = 
+      (!priceMin.value || sp.gia >= priceMin.value) && // Nếu priceMin trống, bỏ qua điều kiện
+      (!priceMax.value || sp.gia <= priceMax.value);  // Nếu priceMax trống, bỏ qua điều kiện
     const matchesCategory = !selectedCategory.value || sp.loaiSanPhamId === Number(selectedCategory.value);
     return matchesName && matchesPrice && matchesCategory;
   });
@@ -651,7 +652,7 @@ const fetchCategories = async () => {
 };
 
 const searchByName = () => {
-  // Lọc cục bộ dựa trên tên sản phẩm
+  // Lọc cục bộ dựa trên tên sản phẩm (đã sử dụng computed)
 };
 
 const clearSearch = () => {
@@ -659,14 +660,23 @@ const clearSearch = () => {
 };
 
 const filterByPrice = () => {
-  if (priceMin.value > priceMax.value) {
+  if (priceMin && priceMax && priceMin > priceMax) {
     showToast("Giá thấp nhất không được lớn hơn giá cao nhất", "warning");
     return;
   }
+  // Lọc cục bộ dựa trên giá (đã sử dụng computed)
 };
 
 const filterByCategory = () => {
-  // Lọc cục bộ dựa trên danh mục
+  // Lọc cục bộ dựa trên danh mục (đã sử dụng computed)
+};
+
+const resetAndRefresh = async () => {
+  searchName.value = "";
+  priceMin.value = null; // Đặt lại về null thay vì 0
+  priceMax.value = null; // Đặt lại về null thay vì 100000000
+  selectedCategory.value = "";
+  await fetchProducts();
 };
 
 const saveProduct = async () => {
@@ -1317,5 +1327,16 @@ onMounted(async () => {
   gap: 10px;
   border-top: 1px solid #e1e8ed;
   padding-top: 10px;
+}
+
+/* Thêm style cho nút tìm kiếm và lọc danh mục */
+.search-btn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.category-filter-btn {
+  margin-top: 10px;
+  width: 100%;
 }
 </style>
