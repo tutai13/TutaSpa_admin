@@ -1,4 +1,3 @@
-
 <template>
   <div class="warehouse-management">
     <!-- Header -->
@@ -106,12 +105,14 @@
                 <div class="form-group">
                   <label class="form-label">
                     <i class="fas fa-align-left"></i> Mô tả sản phẩm
+                    <span class="required">*</span>
                   </label>
                   <input type="text" v-model.trim="newProductDescription" placeholder="Mô tả sản phẩm" :disabled="isLoading" class="form-control" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">
                     <i class="fas fa-image"></i> Ảnh sản phẩm
+                    <span class="required">*</span>
                   </label>
                   <input type="file" ref="fileInput" @change="handleImageUpload" :disabled="isLoading" accept="image/*" class="form-control file-input" />
                 </div>
@@ -124,15 +125,17 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">
-                    <i class="fas fa-truck"></i> Nhà cung cấp (tùy chọn)
+                    <i class="fas fa-truck"></i> Nhà cung cấp
+                    <span class="required">*</span>
                   </label>
-                  <input type="text" v-model.trim="formSupplierName" placeholder="Nhà cung cấp (tùy chọn)" :disabled="isLoading" class="form-control" />
+                  <input type="text" v-model.trim="formSupplierName" placeholder="Nhà cung cấp" :disabled="isLoading" class="form-control" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">
-                    <i class="fas fa-dollar-sign"></i> Giá nhập (tùy chọn)
+                    <i class="fas fa-dollar-sign"></i> Giá nhập
+                    <span class="required">*</span>
                   </label>
-                  <input type="number" v-model.number="formImportPrice" placeholder="Giá nhập (tùy chọn)" min="0" :disabled="isLoading" class="form-control" />
+                  <input type="number" v-model.number="formImportPrice" placeholder="Giá nhập" min="0" :disabled="isLoading" class="form-control" required />
                 </div>
                 <div class="form-group">
                   <label class="form-label">
@@ -286,7 +289,7 @@
         </div>
         <div class="search-controls">
           <div class="search-group">
-            <label>Tìm kiếm theo tên sản phẩm...</label>
+            <label>Tìm kiếm theo tên sản phẩm, mã sản phẩm, ghi chú</label>
             <div class="search-container">
               <input v-model="searchTerm" @input="searchHistory" type="text" class="search-input" placeholder="Nhập tên sản phẩm..." />
               <i class="fas fa-search search-icon"></i>
@@ -537,7 +540,14 @@ const isDuplicateProductName = (name) => {
 const isFormValid = computed(() => {
   if (formTab.value === 'import') {
     if (isNewProduct.value) {
-      return newProductName.value && newProductCategoryId.value && formCurrentSellingPrice.value > 0 && formQuantity.value > 0 && formManufactureDate.value && formExpirationDate.value;
+      return newProductName.value && 
+             newProductCategoryId.value && 
+             formCurrentSellingPrice.value > 0 && 
+             formQuantity.value > 0 && 
+             formSupplierName.value.trim() && 
+             formImportPrice.value > 0 && 
+             formManufactureDate.value && 
+             formExpirationDate.value;
     }
     return formProductId.value && formQuantity.value > 0;
   }
@@ -574,8 +584,14 @@ const handleSubmit = async () => {
   }
 
   if (formTab.value === 'import' && isNewProduct.value) {
-    if (!newProductName.value.trim() || !newProductCategoryId.value || !formCurrentSellingPrice.value ||
-        !newProductDescription.value.trim() || !formQuantity.value || !uploadedFile.value) {
+    if (!newProductName.value.trim() || 
+        !newProductCategoryId.value || 
+        !formCurrentSellingPrice.value || 
+        !newProductDescription.value.trim() || 
+        !formQuantity.value || 
+        !formSupplierName.value.trim() || 
+        !formImportPrice.value || 
+        !uploadedFile.value) {
       errorMessage.value = 'Vui lòng điền đầy đủ thông tin bắt buộc.';
       showToast('Vui lòng điền đầy đủ thông tin bắt buộc.', 'warning');
       return;
@@ -585,9 +601,9 @@ const handleSubmit = async () => {
       showToast('Sản phẩm đã tồn tại, vui lòng nhập thêm số lượng ở phần "Sản phẩm đã có"', 'warning');
       return;
     }
-    if (formCurrentSellingPrice.value <= 0 || formQuantity.value <= 0) {
-      errorMessage.value = 'Giá bán và số lượng phải lớn hơn 0.';
-      showToast('Giá bán và số lượng phải lớn hơn 0.', 'warning');
+    if (formCurrentSellingPrice.value <= 0 || formQuantity.value <= 0 || formImportPrice.value <= 0) {
+      errorMessage.value = 'Giá bán, giá nhập và số lượng phải lớn hơn 0.';
+      showToast('Giá bán, giá nhập và số lượng phải lớn hơn 0.', 'warning');
       return;
     }
   } else if (formTab.value === 'import' && !isNewProduct.value) {
@@ -655,8 +671,8 @@ const handleSubmit = async () => {
       formData.append('Description', newProductDescription.value.trim());
       formData.append('CategoryId', newProductCategoryId.value);
       formData.append('CurrentSellingPrice', formCurrentSellingPrice.value);
-      formData.append('SupplierName', formSupplierName.value.trim() || '');
-      formData.append('ImportPrice', formImportPrice.value || 0);
+      formData.append('SupplierName', formSupplierName.value.trim());
+      formData.append('ImportPrice', formImportPrice.value);
       formData.append('Quantity', formQuantity.value);
       formData.append('ManufactureDate', formManufactureDate.value);
       formData.append('ExpirationDate', formExpirationDate.value);

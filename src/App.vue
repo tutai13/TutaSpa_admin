@@ -181,7 +181,7 @@
         <!-- Thống kê -->
         <router-link
           v-if="authStore.isAdmin || authStore.isManager"
-          to="/apps/ecommerce"
+          to="/thongke"
           class="menu-item"
           exact-active-class="active"
           title="Thống kê"
