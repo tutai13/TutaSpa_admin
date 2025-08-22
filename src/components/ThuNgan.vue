@@ -410,6 +410,7 @@
                 <td class="actions-cell">
                   <div class="action-buttons">
                     <button
+                      v-if="!lich.daThanhToan"
                       class="btn btn-sm btn-info"
                       @click="doiTrangThai(lich.datLichID)"
                       title="Đổi trạng thái"
@@ -423,6 +424,14 @@
                       title="Sửa lịch"
                     >
                       <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      v-if="!lich.daThanhToan"
+                      class="btn btn-sm btn-danger"
+                      @click="xoaLich(lich.datLichID)"
+                      title="Xóa lịch"
+                    >
+                      <i class="fas fa-trash"></i>
                     </button>
                   </div>
                 </td>
@@ -462,7 +471,7 @@ import { useRoute } from "vue-router";
 import dayjs from "dayjs";
 import apiClient from "../utils/axiosClient";
 import connection from "../services/bookingService";
-
+import Swal from "sweetalert2";
 const route = useRoute();
 
 // Reactive data
@@ -583,7 +592,10 @@ const xoaItem = (index) => {
 const taoThanhToan = async () => {
   if (errorMessage.value)
     return showToast("Vui lòng kiểm tra số điện thoại", "error");
-
+  if (isSuaLich.value && lichDangSua.value?.datLichID) {
+    if (lichDangSua.value.trangThai == "Chưa đến")
+      return showToast("khác hàng chưa đến", "error");
+  }
   const data = {
     ngayTao: new Date().toISOString(),
     maGiamGia: maGiamGia.value.toUpperCase(),
@@ -750,6 +762,29 @@ const doiTrangThai = async (id) => {
   } catch (err) {
     console.error("Lỗi đổi trạng thái:", err);
     showToast("Lỗi khi đổi trạng thái!", "error");
+  }
+};
+const xoaLich = async (id) => {
+  const result = await Swal.fire({
+    title: "Bạn có chắc chắn?",
+    text: "Lịch này sẽ bị xóa và không thể khôi phục!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Xóa ngay",
+    cancelButtonText: "Hủy",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      await apiClient.delete(`/DatLich/${id}`);
+      await layDanhSach();
+      showToast("Xóa thành công!", "success");
+    } catch (err) {
+      console.error("Lỗi khi xóa lịch:", err);
+      showToast("Xóa thất bại!", "error");
+    }
   }
 };
 
