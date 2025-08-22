@@ -1,5 +1,22 @@
 <template>
   <div class="review-management">
+    <!-- Toast Notification -->
+    <div class="toast-container">
+      <div 
+        v-if="showToast" 
+        class="custom-toast"
+        :class="{ 'show': showToast, 'success': toastType === 'success', 'error': toastType === 'error' }"
+      >
+        <div class="toast-content">
+          <div class="toast-icon">
+            <i v-if="toastType === 'success'" class="fas fa-check-circle"></i>
+            <i v-if="toastType === 'error'" class="fas fa-exclamation-circle"></i>
+          </div>
+          <span class="toast-message">{{ toastMessage }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Header Section -->
     <div class="page-header">
       <div class="container">
@@ -36,21 +53,21 @@
           </div>
           <div class="card-body p-4">
             <div class="row g-3">
-              <!-- Status Filter -->
+              <!-- Status Filter - Chỉ còn Hiển thị/Ẩn -->
               <div class="col-lg-6">
-                <label class="form-label fw-semibold">Trạng thái đánh giá</label>
+                <label class="form-label fw-semibold">Trạng thái hiển thị</label>
                 <div class="btn-group w-100" role="group">
                   <input type="radio" class="btn-check" name="statusFilter" id="all" v-model="filter" value="all">
                   <label class="btn btn-outline-primary" for="all">
                     <i class="fas fa-list me-2"></i>Tất cả
                   </label>
-                  <input type="radio" class="btn-check" name="statusFilter" id="pending" v-model="filter" value="chuaduyet">
-                  <label class="btn btn-outline-warning" for="pending">
-                    <i class="fas fa-clock me-2"></i>Chưa duyệt
+                  <input type="radio" class="btn-check" name="statusFilter" id="visible" v-model="filter" value="hienthi">
+                  <label class="btn btn-outline-success" for="visible">
+                    <i class="fas fa-eye me-2"></i>Đang hiển thị
                   </label>
-                  <input type="radio" class="btn-check" name="statusFilter" id="approved" v-model="filter" value="daduyet">
-                  <label class="btn btn-outline-success" for="approved">
-                    <i class="fas fa-check me-2"></i>Đã duyệt
+                  <input type="radio" class="btn-check" name="statusFilter" id="hidden" v-model="filter" value="an">
+                  <label class="btn btn-outline-danger" for="hidden">
+                    <i class="fas fa-eye-slash me-2"></i>Đã ẩn
                   </label>
                 </div>
               </div>
@@ -320,32 +337,26 @@
                       <td class="align-middle">
                         <span
                           class="badge"
-                          :class="dg.daDuyet ? 'bg-success' : 'bg-warning'"
+                          :class="dg.isActive ? 'bg-success' : 'bg-danger'"
                         >
                           <i
-                            :class="dg.daDuyet ? 'fas fa-check-circle' : 'fas fa-hourglass-start'"
+                            :class="dg.isActive ? 'fas fa-eye' : 'fas fa-eye-slash'"
                             class="me-1"
                           ></i>
-                          {{ dg.daDuyet ? "Đã duyệt" : "Chưa duyệt" }}
+                          {{ dg.isActive ? "Đang hiển thị" : "Đã ẩn" }}
                         </span>
                       </td>
                       
                       <td class="text-center align-middle">
                         <div class="btn-group btn-group-sm" role="group">
                           <button
-                            v-if="!dg.daDuyet"
-                            @click="duyetDanhGia(dg.id)"
-                            class="btn btn-success btn-sm"
-                            title="Duyệt đánh giá"
-                          >
-                            <i class="fas fa-check"></i>
-                          </button>
-                          <button
                             @click="toggleTrangThai(dg.id)"
-                            class="btn btn-secondary btn-sm"
+                            class="btn btn-sm"
+                            :class="dg.isActive ? 'btn-danger' : 'btn-success'"
                             :title="dg.isActive ? 'Ẩn đánh giá' : 'Hiển thị lại đánh giá'"
                           >
                             <i :class="dg.isActive ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                            {{ dg.isActive ? 'Ẩn' : 'Hiện' }}
                           </button>
                         </div>
                       </td>
@@ -412,6 +423,11 @@ const selectedDichVu = ref("all");
 const starFilter = ref("all");
 const isLoading = ref(false);
 
+// Toast notification states
+const showToast = ref(false);
+const toastMessage = ref("");
+const toastType = ref("success"); // 'success' or 'error'
+
 const chartDataSoLuong = ref({ labels: [], datasets: [] });
 const chartDataTrungBinh = ref({ labels: [], datasets: [] });
 
@@ -423,6 +439,18 @@ const chartOptions = {
 
 onMounted(async () => await loadDanhSach());
 
+// Toast notification functions
+const showToastMessage = (message, type = "success") => {
+  toastMessage.value = message;
+  toastType.value = type;
+  showToast.value = true;
+  
+  // Auto hide after 3 seconds
+  setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
+};
+
 const loadDanhSach = async () => {
   try {
     isLoading.value = true;
@@ -431,6 +459,7 @@ const loadDanhSach = async () => {
     updateCharts();
   } catch (err) {
     console.error("Lỗi khi tải đánh giá:", err);
+    showToastMessage("Lỗi khi tải danh sách đánh giá", "error");
   } finally {
     isLoading.value = false;
   }
@@ -444,17 +473,7 @@ const resetFilters = () => {
   endDate.value = "";
   selectedDichVu.value = "all";
   starFilter.value = "all";
-};
-
-const duyetDanhGia = async (id) => {
-  if (confirm("Bạn có chắc muốn duyệt đánh giá này?")) {
-    try {
-      await axiosClient.put(`DanhGia/duyet/${id}`);
-      await loadDanhSach();
-    } catch (err) {
-      console.error("Lỗi khi duyệt:", err);
-    }
-  }
+  showToastMessage("Đã làm mới bộ lọc");
 };
 
 const toggleTrangThai = async (id) => {
@@ -462,8 +481,10 @@ const toggleTrangThai = async (id) => {
     try {
       await axiosClient.put(`DanhGia/toggle/${id}`);
       await loadDanhSach();
+      showToastMessage("Đã đổi trạng thái thành công");
     } catch (err) {
       console.error("Lỗi khi thay đổi trạng thái:", err);
+      showToastMessage("Lỗi khi thay đổi trạng thái", "error");
     }
   }
 };
@@ -481,8 +502,8 @@ const danhSachLoc = computed(() => {
   return danhSach.value.filter((d) => {
     const matchFilter =
       filter.value === "all" ||
-      (filter.value === "chuaduyet" && !d.daDuyet) ||
-      (filter.value === "daduyet" && d.daDuyet);
+      (filter.value === "hienthi" && d.isActive) ||
+      (filter.value === "an" && !d.isActive);
 
     const matchSearch =
       !searchName.value ||
@@ -508,12 +529,9 @@ const danhSachLoc = computed(() => {
   });
 });
 
-// Sắp xếp để đưa đánh giá chưa duyệt lên đầu
+// Sắp xếp để đưa đánh giá mới nhất lên đầu
 const danhSachLocSorted = computed(() => {
   return [...danhSachLoc.value].sort((a, b) => {
-    // Đánh giá chưa duyệt lên đầu
-    if (!a.daDuyet && b.daDuyet) return -1;
-    if (a.daDuyet && !b.daDuyet) return 1;
     // Sắp xếp theo ngày tạo (mới nhất trước)
     return new Date(b.ngayTao) - new Date(a.ngayTao);
   });
@@ -555,6 +573,81 @@ const updateCharts = () => {
 .review-management {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Toast Notification Styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.custom-toast {
+  min-width: 300px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: translateX(400px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.custom-toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.custom-toast.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.custom-toast.success::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.custom-toast.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.custom-toast.error::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.toast-content {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 /* Header Section */
@@ -687,8 +780,7 @@ const updateCharts = () => {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  
-line-clamp: 2; /* chuẩn mới */
+  line-clamp: 2;
   overflow: hidden;
   line-height: 1.4;
   max-height: 4.2em;
@@ -774,7 +866,109 @@ line-clamp: 2; /* chuẩn mới */
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Toast Animation Enhancements */
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+.custom-toast.show {
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.custom-toast:not(.show) {
+  animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Toast Success Pulse Effect */
+.custom-toast.success .toast-icon {
+  animation: successPulse 0.6s ease-in-out;
+}
+
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Toast Error Shake Effect */
+.custom-toast.error .toast-icon {
+  animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Progress Bar for Toast Auto-hide */
+.custom-toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  animation: progressBar 3s linear forwards;
+  width: 0;
+}
+
+@keyframes progressBar {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    top: 10px;
+  }
+  
+  .custom-toast {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .custom-toast {
+    transform: translateY(-100px);
+  }
+  
+  .custom-toast.show {
+    transform: translateY(0);
+  }
+  
+  @keyframes slideInRight {
+    from {
+      transform: translateY(-100px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
   .page-title {
     font-size: 1.8rem;
   }
@@ -791,7 +985,7 @@ line-clamp: 2; /* chuẩn mới */
   
   .text-truncate-3 {
     -webkit-line-clamp: 2;
-    line-clamp: 2; /* chuẩn mới */
+    line-clamp: 2;
     max-height: 2.8em;
   }
   
@@ -824,5 +1018,14 @@ line-clamp: 2; /* chuẩn mới */
 .btn-check:checked + .btn-outline-success {
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border-color: #28a745;
+}
+
+/* Dark mode support for toast */
+@media (prefers-color-scheme: dark) {
+  .custom-toast:not(.success):not(.error) {
+    background: #2d3748;
+    color: #e2e8f0;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
 }
 </style>
