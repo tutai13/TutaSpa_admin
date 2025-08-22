@@ -55,7 +55,9 @@
             </td>
           </tr>
           <tr v-if="danhSachHoaDon.length === 0">
-            <td colspan="11" class="text-center text-muted">Không có dữ liệu</td>
+            <td colspan="11" class="text-center text-muted">
+              Không có dữ liệu
+            </td>
           </tr>
         </tbody>
       </table>
@@ -81,11 +83,17 @@
               <td>{{ thu.phanTram ?? 0 }}%</td>
             </tr>
             <tr v-if="thuChiData.thu.length === 0">
-              <td colspan="3" class="text-center text-muted">Không có dữ liệu</td>
+              <td colspan="3" class="text-center text-muted">
+                Không có dữ liệu
+              </td>
             </tr>
             <tr class="table-primary">
               <td><strong>Tổng thu</strong></td>
-              <td><strong>{{ thuChiData.tongThu?.toLocaleString() ?? 0 }}₫</strong></td>
+              <td>
+                <strong
+                  >{{ thuChiData.tongThu?.toLocaleString() ?? 0 }}₫</strong
+                >
+              </td>
               <td></td>
             </tr>
           </tbody>
@@ -108,11 +116,17 @@
               <td>{{ chi.phanTram ?? 0 }}%</td>
             </tr>
             <tr v-if="thuChiData.chi.length === 0">
-              <td colspan="3" class="text-center text-muted">Không có dữ liệu</td>
+              <td colspan="3" class="text-center text-muted">
+                Không có dữ liệu
+              </td>
             </tr>
             <tr class="table-primary">
               <td><strong>Tổng chi</strong></td>
-              <td><strong>{{ thuChiData.tongChi?.toLocaleString() ?? 0 }}₫</strong></td>
+              <td>
+                <strong
+                  >{{ thuChiData.tongChi?.toLocaleString() ?? 0 }}₫</strong
+                >
+              </td>
               <td></td>
             </tr>
           </tbody>
@@ -183,7 +197,9 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="addExpenseModalLabel">Thêm chi phí mới</h5>
+            <h5 class="modal-title" id="addExpenseModalLabel">
+              Thêm chi phí mới
+            </h5>
             <button
               type="button"
               class="btn-close"
@@ -261,7 +277,9 @@
             <form @submit.prevent="updateExpense">
               <input type="hidden" v-model="editExpense.expenseId" />
               <div class="mb-3">
-                <label for="editExpenseType" class="form-label">Loại chi phí</label>
+                <label for="editExpenseType" class="form-label"
+                  >Loại chi phí</label
+                >
                 <input
                   type="text"
                   class="form-control"
@@ -311,6 +329,7 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import apiClient from "../utils/axiosClient";
+import dayjs from "dayjs";
 
 const danhSachHoaDon = ref([]);
 const thuChiData = ref({ thu: [], chi: [], tongThu: 0, tongChi: 0 });
@@ -318,7 +337,7 @@ const expenses = ref([]);
 const newExpense = ref({
   expenseType: "",
   amount: 0,
-  date: new Date().toISOString().split("T")[0],
+  date: dayjs().format("YYYY-MM-DD"),
   note: "",
 });
 const editExpense = ref({
@@ -368,7 +387,7 @@ const createExpense = async () => {
     newExpense.value = {
       expenseType: "",
       amount: 0,
-      date: new Date().toISOString().split("T")[0],
+      date: dayjs().format("YYYY-MM-DD"),
       note: "",
     };
     await layDanhSachChiPhi();
@@ -389,14 +408,19 @@ const openEditExpenseModal = (expense) => {
     date: new Date(expense.date).toISOString().split("T")[0],
     note: expense.note,
   };
-  const modal = new bootstrap.Modal(document.getElementById("editExpenseModal"));
+  const modal = new bootstrap.Modal(
+    document.getElementById("editExpenseModal")
+  );
   modal.show();
 };
 
 // Cập nhật chi phí
 const updateExpense = async () => {
   try {
-    await apiClient.put(`/ThongKe/Expense/${editExpense.value.expenseId}`, editExpense.value);
+    await apiClient.put(
+      `/ThongKe/Expense/${editExpense.value.expenseId}`,
+      editExpense.value
+    );
     alert("Cập nhật chi phí thành công");
     await layDanhSachChiPhi();
     await layThuChi(); // Cập nhật lại thu chi
