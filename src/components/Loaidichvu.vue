@@ -348,12 +348,13 @@ const editLoaiDichVu = (item) => {
 };
 const downloadTemplate = () => {
   const link = document.createElement("a");
-  link.href = "https://docs.google.com/spreadsheets/d/1DvCbF-6Dx9JHg96fdQMRynL5WfYBUhJI/export?format=xlsx";
+  link.href = "https://docs.google.com/spreadsheets/d/1XKhk2qVil9iVqwYN_tVd19N9orq-7QEc/export?format=xlsx";
   link.download = "LDV_DV_LSP_SP.xlsx";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
+
 const resetForm = () => {
   form.value = {
     loaiDichVuID: 0,
