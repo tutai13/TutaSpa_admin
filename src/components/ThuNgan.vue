@@ -870,7 +870,8 @@ onMounted(async () => {
     await layDanhSach();
     connection.on("ReceiveBookingNotification", (booking) => {
       const today = dayjs().format("YYYY-MM-DD");
-      if (dayjs(booking.thoiGian).format("YYYY-MM-DD") === today) {
+      const ngay = booking.thoiGian.slice(0, 10);
+      if (ngay === today) {
         booking.daThanhToan = booking.daThanhToan ?? false;
         booking.thoiGian = dayjs(booking.thoiGian).toISOString();
         danhSachDatLich.value = [...danhSachDatLich.value, booking].sort(
