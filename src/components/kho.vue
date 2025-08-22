@@ -533,6 +533,25 @@ const validateDates = () => {
   return null;
 };
 
+const validatePrices = () => {
+  if (formTab.value === 'import' && formImportPrice.value > 0) {
+    let sellingPrice;
+    if (isNewProduct.value) {
+      sellingPrice = formCurrentSellingPrice.value;
+    } else {
+      const selectedProduct = productList.value.find(p => p.sanPhamId === formProductId.value);
+      if (!selectedProduct) {
+        return 'Không tìm thấy sản phẩm.';
+      }
+      sellingPrice = selectedProduct.giaBanHienTai; // Giả sử tên trường là giaBanHienTai, thay đổi nếu cần
+    }
+    if (sellingPrice && formImportPrice.value >= sellingPrice) {
+      return 'Giá nhập phải nhỏ hơn giá bán. Vui lòng nhập lại giá nhập.';
+    }
+  }
+  return null;
+};
+
 const isDuplicateProductName = (name) => {
   return productList.value.some(p => p.tenSP.toLowerCase().trim() === name.toLowerCase().trim());
 };
@@ -580,6 +599,13 @@ const handleSubmit = async () => {
   if (dateError) {
     errorMessage.value = dateError;
     showToast(dateError, 'error');
+    return;
+  }
+
+  const priceError = validatePrices();
+  if (priceError) {
+    errorMessage.value = priceError;
+    showToast(priceError, 'error');
     return;
   }
 
