@@ -25,11 +25,7 @@
                 v-model="soDienThoai"
                 placeholder="Nhập số điện thoại khách hàng"
                 @input="filterNumeric"
-                @blur="validatePhone"
               />
-              <span v-if="errorMessage" class="error-message">
-                {{ errorMessage }}
-              </span>
             </div>
             <span class="item-count-badge">
               {{ danhSachChon.length }} mục
@@ -487,7 +483,6 @@ const soDienThoai = ref("");
 const ghiChu = ref("");
 const isSuaLich = ref(false);
 const lichDangSua = ref(null);
-const errorMessage = ref("");
 const maGiamGia = ref("");
 const giamGia = ref(0);
 const trangThaiGiamGia = ref("");
@@ -495,6 +490,7 @@ const toasts = ref([]);
 let debounceTimer = null;
 const availableSlots = ref([]);
 const selectedKhungGio = ref("");
+const isLoading = ref(false);
 
 // Toast methods
 const showToast = (message, type = "info") => {
@@ -511,16 +507,19 @@ const getToastIcon = (type) =>
   }[type]);
 
 // Phone validation
+// const filterNumeric = (event) => {
+//   let value = event.target.value.replace(/[^0-9]/g, "");
+//   if (value && !value.startsWith("0")) {
+//     value = "0" + value;
+//   }
+//   soDienThoai.value = value;
+//   validatePhone();
+// };
 const filterNumeric = (event) => {
-  soDienThoai.value = event.target.value.replace(/[^0-9]/g, "");
-  validatePhone();
-};
-
-const validatePhone = () => {
-  errorMessage.value =
-    soDienThoai.value.length < 10 || soDienThoai.value.length > 11
-      ? "Số điện thoại phải có 10-11 chữ số!"
-      : "";
+  let value = event.target.value.replace(/\D/g, ""); // chỉ giữ số
+  if (value.length > 10) value = value.slice(0, 10); // tối đa 10 số
+  if (value && !value.startsWith("0")) value = "0" + value; // bắt buộc số 0 đầu
+  soDienThoai.value = value;
 };
 
 // Money input handling
@@ -590,12 +589,28 @@ const xoaItem = (index) => {
 
 // Payment methods
 const taoThanhToan = async () => {
-  if (errorMessage.value)
-    return showToast("Vui lòng kiểm tra số điện thoại", "error");
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   if (isSuaLich.value && lichDangSua.value?.datLichID) {
     if (lichDangSua.value.trangThai == "Chưa đến")
       return showToast("khác hàng chưa đến", "error");
   }
+  isLoading.value = true;
+  Swal.fire({
+    title: "Đang xử lý...",
+    text: "Vui lòng đợi trong giây lát",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
   const data = {
     ngayTao: new Date().toISOString(),
     maGiamGia: maGiamGia.value.toUpperCase(),
@@ -630,11 +645,27 @@ const taoThanhToan = async () => {
   } catch (err) {
     console.error("Lỗi tạo hóa đơn:", err);
     showToast("Tạo hóa đơn thất bại.", "error");
+  } finally {
+    Swal.close();
+    isLoading.value = false;
   }
 };
 
 const taoMaChuyenKhoan = async () => {
   if (!danhSachChon.value.length || !soDienThoai.value.trim()) return;
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (isSuaLich.value && lichDangSua.value?.datLichID) {
+    if (lichDangSua.value.trangThai == "Chưa đến")
+      return showToast("khác hàng chưa đến", "error");
+  }
   const payload = {
     totalAmount: tongTien.value,
     description: "Thanh toán hóa đơn",
@@ -669,8 +700,15 @@ const taoMaChuyenKhoan = async () => {
 
 // Booking management
 const datLich = async () => {
-  if (errorMessage.value)
-    return showToast("Vui lòng kiểm tra số điện thoại.", "warning");
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   const dichVusSelected = danhSachChon.value
     .filter((item) => item.dichVuID)
     .map((item) => ({ DichVuID: item.dichVuID, SoLuong: item.soLuong }));
@@ -700,8 +738,15 @@ const datLich = async () => {
 };
 
 const capNhatLich = async () => {
-  if (errorMessage.value)
-    return showToast("Vui lòng kiểm tra số điện thoại.", "warning");
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   const dichVusSelected = danhSachChon.value
     .filter((item) => item.dichVuID)
     .map((item) => ({ DichVuID: item.dichVuID, SoLuong: item.soLuong }));
@@ -778,12 +823,25 @@ const xoaLich = async (id) => {
 
   if (result.isConfirmed) {
     try {
+      isLoading.value = true;
+      Swal.fire({
+        title: "Đang xử lý...",
+        text: "Vui lòng đợi trong giây lát",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       await apiClient.delete(`/DatLich/${id}`);
+
       await layDanhSach();
       showToast("Xóa thành công!", "success");
     } catch (err) {
       console.error("Lỗi khi xóa lịch:", err);
       showToast("Xóa thất bại!", "error");
+    } finally {
+      Swal.close();
+      isLoading.value = false;
     }
   }
 };
