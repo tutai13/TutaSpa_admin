@@ -1,249 +1,251 @@
 <template>
-  <div class="dich-vu-management">
-    <!-- Tiêu đề trang -->
-    <div class="header">
-      <h1 class="title">
-        <i class="fa fa-list-alt"></i>
-        Quản lý Dịch Vụ
-      </h1>
-    </div>
-
-    <!-- Bộ lọc -->
-    <div class="card filter-section">
-      <div class="card-header">
-        <h2 class="section-title">
-          <i class="fa fa-filter"></i>
-          Bộ lọc và tìm kiếm
-        </h2>
-        <button @click="resetFilters" class="btn btn-outline-light">
-          <i class="fas fa-sync-alt"></i>
-          Làm mới
-        </button>
+  <div class="container">
+    <div class="dich-vu-management">
+      <!-- Tiêu đề trang -->
+      <div class="header">
+        <h1 class="title">
+          <i class="fa fa-list-alt"></i>
+          Quản lý Dịch Vụ
+        </h1>
       </div>
-      <div class="card-body">
-        <div class="filter-grid">
-          <!-- Tìm kiếm theo tên -->
-          <div class="filter-group">
-            <label class="filter-label">
-              <i class="fa-solid fa-magnifying-glass me-1" style="color:#e83e8c;"></i> Tìm theo tên
-            </label>
-            <div class="search-container">
-              <input v-model="searchName" type="text" class="search-input" placeholder="Nhập tên dịch vụ..." />
-              <button v-if="searchName" @click="clearSearch" class="clear-search" title="Xóa tìm kiếm">
-                <i class="fas fa-times"></i>
-              </button>
-              <i class="fa fa-search search-icon"></i>
+      <!-- Bộ lọc -->
+      <div class="card filter-section">
+        <div class="card-header">
+          <h2 class="section-title">
+            <i class="fa fa-filter"></i>
+            Bộ lọc và tìm kiếm
+          </h2>
+          <button @click="resetFilters" class="btn btn-outline-light">
+            <i class="fas fa-sync-alt"></i>
+            Làm mới
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="filter-grid">
+            <!-- Tìm kiếm theo tên -->
+            <div class="filter-group">
+              <label class="filter-label">
+                <i class="fa-solid fa-magnifying-glass me-1" style="color:#e83e8c;"></i> Tìm theo tên
+              </label>
+              <div class="search-container">
+                <input v-model="searchName" type="text" class="search-input" placeholder="Nhập tên dịch vụ..." />
+                <button v-if="searchName" @click="clearSearch" class="clear-search" title="Xóa tìm kiếm">
+                  <i class="fas fa-times"></i>
+                </button>
+                <i class="fa fa-search search-icon"></i>
+              </div>
             </div>
-          </div>
 
-          <!-- Lọc theo giá -->
-          <div class="filter-group price-filter">
-            <label class="filter-label">
-              <i class="fa-solid fa-sliders me-1"></i> Lọc giá
-            </label>
-            <div class="price-inputs">
-              <input v-model.number="priceMin" type="number" class="form-control" placeholder="Từ" min="0" />
-              <input v-model.number="priceMax" type="number" class="form-control" placeholder="Đến" min="0" />
+            <!-- Lọc theo giá -->
+            <div class="filter-group price-filter">
+              <label class="filter-label">
+                <i class="fa-solid fa-sliders me-1"></i> Lọc giá
+              </label>
+              <div class="price-inputs">
+                <input v-model.number="priceMin" type="number" class="form-control" placeholder="Từ" min="0" />
+                <input v-model.number="priceMax" type="number" class="form-control" placeholder="Đến" min="0" />
+              </div>
             </div>
-          </div>
 
-          <!-- Lọc theo loại dịch vụ -->
-          <div class="filter-group">
-            <label class="filter-label">Loại dịch vụ</label>
-            <select v-model="selectedLoaiDichVu" class="form-control">
-              <option value="">Tất cả loại</option>
-              <option v-for="ldv in loaiDichVus" :key="ldv.loaiDichVuID" :value="ldv.loaiDichVuID">
-                {{ ldv.tenLoai }}
-              </option>
-            </select>
-          </div>
+            <!-- Lọc theo loại dịch vụ -->
+            <div class="filter-group">
+              <label class="filter-label">Loại dịch vụ</label>
+              <select v-model="selectedLoaiDichVu" class="form-control">
+                <option value="">Tất cả loại</option>
+                <option v-for="ldv in loaiDichVus" :key="ldv.loaiDichVuID" :value="ldv.loaiDichVuID">
+                  {{ ldv.tenLoai }}
+                </option>
+              </select>
+            </div>
 
-          <!-- Lọc theo trạng thái -->
-          <div class="filter-group">
-            <label class="filter-label">Trạng thái</label>
-            <select v-model="selectedTrangThai" class="form-control">
-              <option value="">Tất cả</option>
-              <option value="1">Hoạt động</option>
-              <option value="0">Tạm ngừng</option>
-            </select>
-          </div>
+            <!-- Lọc theo trạng thái -->
+            <div class="filter-group">
+              <label class="filter-label">Trạng thái</label>
+              <select v-model="selectedTrangThai" class="form-control">
+                <option value="">Tất cả</option>
+                <option value="1">Hoạt động</option>
+                <option value="0">Tạm ngừng</option>
+              </select>
+            </div>
 
-          <!-- Lọc theo thời gian -->
-          <div class="filter-group">
-            <label class="filter-label">
-              <i class="fa-solid fa-clock me-1"></i> Thời gian (phút)
-            </label>
-            <div class="time-inputs">
-              <input v-model.number="timeMin" type="number" class="form-control" placeholder="Từ" min="0" />
-              <input v-model.number="timeMax" type="number" class="form-control" placeholder="Đến" min="0" />
+            <!-- Lọc theo thời gian -->
+            <div class="filter-group">
+              <label class="filter-label">
+                <i class="fa-solid fa-clock me-1"></i> Thời gian (phút)
+              </label>
+              <div class="time-inputs">
+                <input v-model.number="timeMin" type="number" class="form-control" placeholder="Từ" min="0" />
+                <input v-model.number="timeMax" type="number" class="form-control" placeholder="Đến" min="0" />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="content-grid">
-      <!-- Form -->
-      <div class="form-section">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="section-title">
-              <i class="fa fa-plus-circle"></i>
-              {{ isEditing ? "Cập nhật Dịch vụ" : "Thêm Dịch vụ mới" }}
-            </h2>
+      <div class="content-grid">
+        <!-- Form -->
+        <div class="form-section">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="section-title">
+                <i class="fa fa-plus-circle"></i>
+                {{ isEditing ? "Cập nhật Dịch vụ" : "Thêm Dịch vụ mới" }}
+              </h2>
+            </div>
+            <div class="card-body">
+              <form @submit.prevent="saveDichVu" class="service-form">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Tên dịch vụ <span class="required">*</span></label>
+                    <input v-model="dichVu.tenDichVu" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Giá (VND) <span class="required">*</span></label>
+                    <input v-model.number="dichVu.gia" type="number" class="form-control" min="0" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Thời gian (phút) <span class="required">*</span></label>
+                    <input v-model.number="dichVu.thoiGian" type="number" class="form-control" min="0" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Hình ảnh</label>
+                    <input type="file" class="form-control" @change="handleFileChange" accept="image/*" />
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label">Mô tả</label>
+                    <textarea v-model="dichVu.moTa" class="form-control" rows="3"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Loại dịch vụ <span class="required">*</span></label>
+                    <select v-model.number="dichVu.loaiDichVuID" class="form-control" required>
+                      <option disabled value="">-- Chọn loại dịch vụ --</option>
+                      <option v-for="ldv in loaiDichVus" :key="ldv.loaiDichVuID" :value="ldv.loaiDichVuID">
+                        {{ ldv.tenLoai }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <select v-model.number="dichVu.trangThai" class="form-control">
+                      <option :value="1">Hoạt động</option>
+                      <option :value="0">Tạm ngừng</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary" :disabled="loading">
+                    <i class="fa fa-save"></i>
+                    {{ loading ? 'Đang lưu...' : (isEditing ? "Cập nhật" : "Thêm") }}
+                  </button>
+                  <button type="button" class="btn btn-danger" @click="resetForm">
+                    <i class="fa fa-undo"></i> Hủy
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-          <div class="card-body">
-            <form @submit.prevent="saveDichVu" class="service-form">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label class="form-label">Tên dịch vụ <span class="required">*</span></label>
-                  <input v-model="dichVu.tenDichVu" class="form-control" required />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Giá (VND) <span class="required">*</span></label>
-                  <input v-model.number="dichVu.gia" type="number" class="form-control" min="0" required />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Thời gian (phút) <span class="required">*</span></label>
-                  <input v-model.number="dichVu.thoiGian" type="number" class="form-control" min="0" required />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Hình ảnh</label>
-                  <input type="file" class="form-control" @change="handleFileChange" accept="image/*" />
-                </div>
-                <div class="form-group full-width">
-                  <label class="form-label">Mô tả</label>
-                  <textarea v-model="dichVu.moTa" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Loại dịch vụ <span class="required">*</span></label>
-                  <select v-model.number="dichVu.loaiDichVuID" class="form-control" required>
-                    <option disabled value="">-- Chọn loại dịch vụ --</option>
-                    <option v-for="ldv in loaiDichVus" :key="ldv.loaiDichVuID" :value="ldv.loaiDichVuID">
-                      {{ ldv.tenLoai }}
-                    </option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Trạng thái</label>
-                  <select v-model.number="dichVu.trangThai" class="form-control">
-                    <option :value="1">Hoạt động</option>
-                    <option :value="0">Tạm ngừng</option>
-                  </select>
-                </div>
+        </div>
+
+        <!-- Danh sách -->
+        <div class="list-section">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="section-title">
+                <i class="fa fa-table"></i>
+                Danh sách Dịch vụ ({{ filteredDichVus.length }} kết quả)
+              </h2>
+            </div>
+            <div class="card-body">
+              <!-- Loading State -->
+              <div v-if="loading" class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                Đang tải...
               </div>
-              <div class="form-actions">
-                <button type="submit" class="btn btn-primary" :disabled="loading">
-                  <i class="fa fa-save"></i>
-                  {{ loading ? 'Đang lưu...' : (isEditing ? "Cập nhật" : "Thêm") }}
+
+              <!-- Empty State -->
+              <div v-else-if="!filteredDichVus.length" class="empty-state">
+                <i class="fas fa-concierge-bell"></i>
+                <p>{{ dichVus.length ? 'Không tìm thấy dịch vụ phù hợp với bộ lọc' : 'Không có dịch vụ nào' }}</p>
+              </div>
+
+              <div v-else class="table-responsive">
+                <table class="services-table">
+                  <thead>
+                    <tr>
+                      <th>Tên</th>
+                      <th>Giá</th>
+                      <th>Thời gian</th>
+                      <th>Ảnh</th>
+                      <th>Ngày tạo</th>
+                      <th>Loại</th>
+                      <th>Trạng thái</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="dv in paginatedDichVus" :key="dv.dichVuID" class="service-row">
+                      <td class="service-name">{{ dv.tenDichVu }}</td>
+                      <td class="service-price">{{ formatCurrency(dv.gia) }}</td>
+                      <td class="service-time">{{ dv.thoiGian }} phút</td>
+                      <td class="service-image">
+                        <img :src="imageUrl + dv.hinhAnh" class="service-img" alt="Service image" />
+                      </td>
+                      <td class="service-date">{{ formatDate(dv.ngayTao) }}</td>
+                      <td class="service-type">
+                        <span class="type-badge">{{ dv.tenLoai }}</span>
+                      </td>
+                      <td class="service-status">
+                        <span class="status-badge" :class="dv.trangThai === 1 ? 'active' : 'inactive'">
+                          {{ dv.trangThai === 1 ? 'Hoạt động' : 'Tạm ngừng' }}
+                        </span>
+                      </td>
+                      <td class="service-actions">
+                        <div class="action-buttons">
+                          <button class="btn btn-sm btn-info" @click="editDichVu(dv)" title="Chỉnh sửa">
+                            <i class="fa fa-edit"></i>
+                          </button>
+                          <button class="btn btn-sm" :class="dv.trangThai === 1 ? 'btn-warning' : 'btn-success'"
+                            @click="toggleTrangThai(dv)" :title="dv.trangThai === 1 ? 'Tạm ngừng' : 'Kích hoạt'">
+                            <i class="fa" :class="dv.trangThai === 1 ? 'fa-pause' : 'fa-play'"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Phân trang -->
+              <div v-if="filteredDichVus.length > 0" class="pagination-container">
+                <button class="btn btn-outline-primary" :disabled="currentPage === 1"
+                  @click="goToPage(currentPage - 1)">
+                  <i class="fa fa-angle-left"></i>
+                  Trước
                 </button>
-                <button type="button" class="btn btn-danger" @click="resetForm">
-                  <i class="fa fa-undo"></i> Hủy
+                <span class="page-info">Trang {{ currentPage }} / {{ totalPages }}</span>
+                <div class="page-numbers">
+                  <button v-for="page in visiblePages" :key="page" class="btn btn-sm page-btn"
+                    :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'" @click="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </div>
+                <button class="btn btn-outline-primary" :disabled="currentPage === totalPages"
+                  @click="goToPage(currentPage + 1)">
+                  Sau
+                  <i class="fa fa-angle-right"></i>
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Danh sách -->
-      <div class="list-section">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="section-title">
-              <i class="fa fa-table"></i>
-              Danh sách Dịch vụ ({{ filteredDichVus.length }} kết quả)
-            </h2>
-          </div>
-          <div class="card-body">
-            <!-- Loading State -->
-            <div v-if="loading" class="loading-state">
-              <i class="fas fa-spinner fa-spin"></i>
-              Đang tải...
-            </div>
-
-            <!-- Empty State -->
-            <div v-else-if="!filteredDichVus.length" class="empty-state">
-              <i class="fas fa-concierge-bell"></i>
-              <p>{{ dichVus.length ? 'Không tìm thấy dịch vụ phù hợp với bộ lọc' : 'Không có dịch vụ nào' }}</p>
-            </div>
-
-            <div v-else class="table-responsive">
-              <table class="services-table">
-                <thead>
-                  <tr>
-                    <th>Tên</th>
-                    <th>Giá</th>
-                    <th>Thời gian</th>
-                    <th>Ảnh</th>
-                    <th>Ngày tạo</th>
-                    <th>Loại</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="dv in paginatedDichVus" :key="dv.dichVuID" class="service-row">
-                    <td class="service-name">{{ dv.tenDichVu }}</td>
-                    <td class="service-price">{{ formatCurrency(dv.gia) }}</td>
-                    <td class="service-time">{{ dv.thoiGian }} phút</td>
-                    <td class="service-image">
-                      <img :src="imageUrl + dv.hinhAnh" class="service-img" alt="Service image" />
-                    </td>
-                    <td class="service-date">{{ formatDate(dv.ngayTao) }}</td>
-                    <td class="service-type">
-                      <span class="type-badge">{{ dv.tenLoai }}</span>
-                    </td>
-                    <td class="service-status">
-                      <span class="status-badge" :class="dv.trangThai === 1 ? 'active' : 'inactive'">
-                        {{ dv.trangThai === 1 ? 'Hoạt động' : 'Tạm ngừng' }}
-                      </span>
-                    </td>
-                    <td class="service-actions">
-                      <div class="action-buttons">
-                        <button class="btn btn-sm btn-info" @click="editDichVu(dv)" title="Chỉnh sửa">
-                          <i class="fa fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm" :class="dv.trangThai === 1 ? 'btn-warning' : 'btn-success'"
-                          @click="toggleTrangThai(dv)" :title="dv.trangThai === 1 ? 'Tạm ngừng' : 'Kích hoạt'">
-                          <i class="fa" :class="dv.trangThai === 1 ? 'fa-pause' : 'fa-play'"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Phân trang -->
-            <div v-if="filteredDichVus.length > 0" class="pagination-container">
-              <button class="btn btn-outline-primary" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
-                <i class="fa fa-angle-left"></i>
-                Trước
-              </button>
-              <span class="page-info">Trang {{ currentPage }} / {{ totalPages }}</span>
-              <div class="page-numbers">
-                <button v-for="page in visiblePages" :key="page" class="btn btn-sm page-btn"
-                  :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'" @click="goToPage(page)">
-                  {{ page }}
-                </button>
-              </div>
-              <button class="btn btn-outline-primary" :disabled="currentPage === totalPages"
-                @click="goToPage(currentPage + 1)">
-                Sau
-                <i class="fa fa-angle-right"></i>
-              </button>
-            </div>
-          </div>
+      <!-- Toast Notifications -->
+      <div class="toast-container">
+        <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
+          <i class="fas" :class="getToastIcon(toast.type)"></i>
+          {{ toast.message }}
         </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div class="toast-container">
-      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
-        <i class="fas" :class="getToastIcon(toast.type)"></i>
-        {{ toast.message }}
       </div>
     </div>
   </div>
@@ -461,21 +463,54 @@ const fetchLoaiDichVus = async () => {
 };
 
 const saveDichVu = async () => {
-  // Validation
-  if (dichVu.value.gia < 0) {
-    showToast("Giá dịch vụ không được âm", 'warning');
+  let hasError = false;
+
+  // --- Validation cơ bản ---
+  if (!dichVu.value.tenDichVu || !dichVu.value.tenDichVu.trim()) {
+    showToast("Tên dịch vụ không được để trống", "warning");
     return;
   }
-
-  if (dichVu.value.thoiGian < 0) {
-    showToast("Thời gian không được âm", 'warning');
+  if (/\d/.test(dichVu.value.tenDichVu)) {
+    showToast("Tên dịch vụ không được chứa số", "warning");
+    return;
+  }
+  if (dichVu.value.gia == null || dichVu.value.gia <= 0) {
+    showToast("Giá dịch vụ phải lớn hơn 0", "warning");
+    return;
+  }
+  if (dichVu.value.thoiGian == null || dichVu.value.thoiGian <= 0) {
+    showToast("Thời gian phải lớn hơn 0", "warning");
+    return;
+  }
+  if ((!dichVu.value.hinhAnh || !dichVu.value.hinhAnh.trim()) && !selectedImage.value) {
+    showToast("Hình ảnh không được để trống", "warning");
     return;
   }
 
   try {
     loading.value = true;
-    let imageName = dichVu.value.hinhAnh;
 
+    // --- 🔎 Kiểm tra trùng tên theo loại ---
+    const checkRes = await apiClient.get("/DichVu"); // hoặc làm API riêng: /DichVu/check?ten=xxx
+    const allDV = checkRes || [];
+    const tenNormalized = dichVu.value.tenDichVu.trim().toLowerCase();
+
+    const existedDV = allDV.find(
+      x => x.tenDichVu.trim().toLowerCase() === tenNormalized
+    );
+
+    if (existedDV) {
+      if (existedDV.loaiDichVuID !== dichVu.value.loaiDichVuID) {
+        showToast(`Dịch vụ '${dichVu.value.tenDichVu}' đã tồn tại trong loại khác, vui lòng chọn đúng loại dịch vụ.`, "warning");
+        return;
+      } else {
+        showToast("Tên dịch vụ đã tồn tại trong loại này.", "warning");
+        return;
+      }
+    }
+
+    // --- Upload ảnh nếu có ---
+    let imageName = dichVu.value.hinhAnh;
     if (selectedImage.value) {
       const formData = new FormData();
       formData.append("file", selectedImage.value);
@@ -488,14 +523,15 @@ const saveDichVu = async () => {
       imageName = uploadRes.fileName || uploadRes;
     }
 
+    // --- Submit ---
     const payload = { ...dichVu.value, hinhAnh: imageName };
 
     if (isEditing.value) {
       await apiClient.put(`/DichVu/${payload.dichVuID}`, payload);
-      showToast("Cập nhật dịch vụ thành công!", 'success');
+      showToast("Cập nhật dịch vụ thành công!", "success");
     } else {
       await apiClient.post("/DichVu", payload);
-      showToast("Thêm dịch vụ thành công!", 'success');
+      showToast("Thêm dịch vụ thành công!", "success");
     }
 
     resetForm();
@@ -503,12 +539,11 @@ const saveDichVu = async () => {
     await fetchDichVus();
   } catch (error) {
     console.error("Lỗi lưu dịch vụ:", error);
-    showToast("Lỗi khi lưu dịch vụ!", 'error');
+    showToast("Có lỗi khi lưu dịch vụ!", "error");
   } finally {
     loading.value = false;
   }
 };
-
 const editDichVu = (dv) => {
   dichVu.value = { ...dv };
   isEditing.value = true;
@@ -633,6 +668,7 @@ onMounted(() => {
 /* ===== FILTER SECTION ===== */
 .filter-section {
   margin-bottom: 30px;
+  width: 113%;
 }
 
 .filter-grid {
@@ -752,84 +788,41 @@ onMounted(() => {
 }
 
 /* ===== FORM STYLES ===== */
-.service-form {
-  max-width: none;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-label {
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.form-label::before {
-  content: '';
-  width: 3px;
-  height: 16px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 2px;
-}
-
-.required {
-  color: #e74c3c;
-  font-weight: 900;
-}
-
-.form-control {
-  padding: 12px 15px;
+.service-form .form-control {
+  padding: 12px 14px;
   border: 2px solid #e1e8ed;
   border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  width: 100%;
+  font-size: 0.95rem;
+  height: 44px;
+  /* fix chiều cao */
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.form-control::placeholder {
-  color: #adb5bd;
-  font-style: italic;
-}
-
-.form-control:focus {
-  outline: none;
+.service-form .form-control:focus {
   border-color: #3498db;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+  outline: none;
 }
 
-.form-control:hover:not(:focus) {
-  border-color: #c8d0e7;
-  background: white;
+/* Textarea cao hơn nhưng vẫn cùng style */
+.service-form textarea.form-control {
+  height: auto;
+  min-height: 100px;
+  resize: vertical;
 }
 
-.form-actions {
+/* Full width cho các trường dài */
+.service-form .form-group.full-width {
+  grid-column: 1 / -1;
+  /* chiếm trọn hàng */
+}
+
+/* Hành động nút */
+.service-form .form-actions {
   display: flex;
   gap: 15px;
-  justify-content: flex-start;
-  padding-top: 20px;
-  border-top: 2px solid #f8f9fa;
+  margin-top: 20px;
 }
 
 /* ===== BUTTON STYLES ===== */
@@ -1193,7 +1186,7 @@ onMounted(() => {
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   .content-grid {
     grid-template-columns: 1fr;
   }

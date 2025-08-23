@@ -70,13 +70,13 @@
                 placeholder="Giá cao nhất"
                 min="0"
               />
-              <button
+              <!-- <button
                 class="btn btn-primary price-filter-btn"
                 @click="filterByPrice"
               >
                 <i class="fas fa-filter"></i>
                 Lọc
-              </button>
+              </button> -->
             </div>
           </div>
 
@@ -291,18 +291,19 @@
             <table class="products-table">
               <thead>
                 <tr>
-                  <th>
+                  <!-- <th>
                     <i class="fas fa-hashtag"></i>
                     ID
+                  </th> --> 
+                  <th>
+                    <i class="fas fa-tag"></i>
+                    Tên sản phẩm
                   </th>
                   <th>
                     <i class="fas fa-image"></i>
                     Ảnh
                   </th>
-                  <th>
-                    <i class="fas fa-tag"></i>
-                    Tên sản phẩm
-                  </th>
+                 
                   <th>
                     <i class="fas fa-money-bill-wave"></i>
                     Giá
@@ -331,7 +332,12 @@
                   :key="sp.sanPhamId"
                   class="product-row"
                 >
-                  <td class="product-id">{{ sp.sanPhamId }}</td>
+                  <!-- <td class="product-id">{{ sp.sanPhamId }}</td> -->
+                   <td class="product-name">
+                    <div class="name-container">
+                      <strong>{{ sp.tenSP }}</strong>
+                    </div>
+                  </td>
                   <td class="product-image">
                     <div class="image-container">
                       <img
@@ -346,11 +352,7 @@
                       </div>
                     </div>
                   </td>
-                  <td class="product-name">
-                    <div class="name-container">
-                      <strong>{{ sp.tenSP }}</strong>
-                    </div>
-                  </td>
+                  
                   <td class="product-price">
                     <span class="price-value">
                       {{ formatPrice(sp.gia) }}
@@ -966,7 +968,7 @@ onMounted(async () => {
 /* Toast Notification */
 .toast-container {
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   right: 20px;
   z-index: 9999;
   display: flex;

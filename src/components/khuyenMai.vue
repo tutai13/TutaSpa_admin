@@ -98,6 +98,7 @@
                 class="form-control"
                 placeholder="Nhập số lượng"
                 min="1"
+                max="100"
                 :disabled="voucher.voHan"
                 required
               />
@@ -451,9 +452,16 @@ const fetchVouchers = async () => {
 const saveVoucher = async () => {
   const ngayBatDauDate = new Date(voucher.ngayBatDau)
   const ngayKetThucDate = new Date(voucher.ngayKetThuc)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // reset giờ để so sánh chỉ theo ngày
 
   if (!voucher.ngayBatDau || !voucher.ngayKetThuc) {
     showToast("Vui lòng nhập đủ ngày bắt đầu và ngày kết thúc.", 'warning')
+    return
+  }
+
+  if (ngayBatDauDate < today) {
+    showToast("Ngày bắt đầu không được nhỏ hơn ngày hiện tại.", 'warning')
     return
   }
 
@@ -494,6 +502,7 @@ const saveVoucher = async () => {
     loading.value = false
   }
 }
+
 
 const deleteVoucher = async (id) => {
   if (confirm("Bạn có chắc chắn muốn xóa voucher này?")) {
@@ -1495,4 +1504,4 @@ onMounted(() => {
     font-size: 0.8rem;
   }
 }
-</style>;
+</style>

@@ -128,27 +128,66 @@
           style="border-radius: 20px; overflow: hidden"
         >
           <div class="card-header bg-white border-0 p-4">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
               <h4 class="mb-0 fw-bold text-primary">📊 Biểu đồ Doanh thu</h4>
-              <div class="btn-group" role="group">
-                <button
-                  type="button"
-                  class="btn btn-outline-primary"
-                  :class="{ active: selectedTimeRange === 'thang' }"
-                  @click="changeTimeRange('thang')"
-                  style="border-radius: 25px 0 0 25px"
-                >
-                  Ngày
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-outline-primary"
-                  :class="{ active: selectedTimeRange === 'nam' }"
-                  @click="changeTimeRange('nam')"
-                  style="border-radius: 0 25px 25px 0"
-                >
-                  Tháng
-                </button>
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+                <!-- Dropdown chọn tháng/năm -->
+                <div v-if="selectedTimeRange === 'thang'" class="d-flex gap-2">
+                  <select 
+                    v-model="selectedMonth" 
+                    @change="onMonthYearChange"
+                    class="form-select form-select-sm"
+                    style="width: 100px;"
+                  >
+                    <option v-for="month in months" :key="month.value" :value="month.value">
+                      {{ month.label }}
+                    </option>
+                  </select>
+                  <select 
+                    v-model="selectedYear" 
+                    @change="onMonthYearChange"
+                    class="form-select form-select-sm"
+                    style="width: 100px;"
+                  >
+                    <option v-for="year in years" :key="year" :value="year">
+                      {{ year }}
+                    </option>
+                  </select>
+                </div>
+                <div v-else class="d-flex gap-2">
+                  <select 
+                    v-model="selectedYear" 
+                    @change="onYearChange"
+                    class="form-select form-select-sm"
+                    style="width: 100px;"
+                  >
+                    <option v-for="year in years" :key="year" :value="year">
+                      {{ year }}
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Toggle buttons -->
+                <div class="btn-group" role="group">
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    :class="{ active: selectedTimeRange === 'thang' }"
+                    @click="changeTimeRange('thang')"
+                    style="border-radius: 25px 0 0 25px"
+                  >
+                    Tháng
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    :class="{ active: selectedTimeRange === 'nam' }"
+                    @click="changeTimeRange('nam')"
+                    style="border-radius: 0 25px 25px 0"
+                  >
+                    Năm
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -160,7 +199,7 @@
               <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
             </div>
             <div
-              v-else-if="chartData.length > 0"
+              v-else-if=" chartData.length > 0"
               ref="chartContainer"
               id="revenueChart"
               style="min-height: 300px; width: 100%"
@@ -168,7 +207,6 @@
             <div v-else class="text-center p-5 text-muted">
               <i class="fas fa-chart-bar fa-3x mb-3"></i>
               <p>Không có dữ liệu để hiển thị</p>
-              <p class="small">Debug: {{ debugInfo }}</p>
             </div>
           </div>
         </div>
@@ -322,6 +360,8 @@ const doanhThu = ref(0);
 // Chart variables
 const chartContainer = ref(null);
 const selectedTimeRange = ref("thang");
+const selectedMonth = ref(new Date().getMonth() + 1);
+const selectedYear = ref(new Date().getFullYear());
 const isLoading = ref(false);
 const isLoadingService = ref(false);
 const chartData = ref([]);
@@ -335,6 +375,34 @@ let pieChartInstance = null;
 
 // Appointment list
 const lichHenHienThi = ref([]);
+
+// Dropdown data
+const months = ref([
+  { value: 1, label: "Tháng 1" },
+  { value: 2, label: "Tháng 2" },
+  { value: 3, label: "Tháng 3" },
+  { value: 4, label: "Tháng 4" },
+  { value: 5, label: "Tháng 5" },
+  { value: 6, label: "Tháng 6" },
+  { value: 7, label: "Tháng 7" },
+  { value: 8, label: "Tháng 8" },
+  { value: 9, label: "Tháng 9" },
+  { value: 10, label: "Tháng 10" },
+  { value: 11, label: "Tháng 11" },
+  { value: 12, label: "Tháng 12" },
+]);
+
+const years = ref([]);
+
+// Initialize years array
+const initializeYears = () => {
+  const currentYear = new Date().getFullYear();
+  const yearList = [];
+  for (let i = currentYear - 5; i <= currentYear + 1; i++) {
+    yearList.push(i);
+  }
+  years.value = yearList;
+};
 
 // Handle hover effect for stat cards
 const handleHover = (event, isHover) => {
@@ -374,6 +442,48 @@ const formatDataForChart = (data) => {
   return formattedData;
 };
 
+// Get full chart data with all time periods
+const getFullChartData = (rawData, timeRange) => {
+  // Xác định các mốc thời gian cần hiển thị
+  let labels = [];
+  let now = new Date();
+  if (timeRange === "thang") {
+    // Hiển thị đủ ngày trong tháng hiện tại
+    const year = selectedYear.value;
+    const month = selectedMonth.value - 1; // JavaScript month is 0-based
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      labels.push(d.toString());
+    }
+  } else {
+    // Hiển thị đủ 12 tháng
+    labels = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  }
+
+  // Chuyển rawData thành map để tra cứu nhanh
+  const dataMap = {};
+  rawData.forEach((item) => {
+    // item.x có thể là ngày/tháng, chuyển về string để so sánh
+    dataMap[item.x.toString()] = item.value;
+  });
+
+  // Tạo mảng dữ liệu đủ các mốc, nếu không có thì gán 0
+  return labels.map((label) => ({
+    x: label,
+    value: dataMap[label] ?? 0,
+  }));
+};
+
+// Handle bar click for yearly view
+const handleBarClick = (monthIndex) => {
+  if (selectedTimeRange.value === 'nam') {
+    // Chuyển sang view tháng và set tháng được chọn
+    selectedTimeRange.value = 'thang';
+    selectedMonth.value = monthIndex + 1; // monthIndex bắt đầu từ 0
+    loadChartData('thang', selectedMonth.value, selectedYear.value);
+  }
+};
+
 // Create custom bar chart
 const createChart = (data) => {
   if (!chartContainer.value) return;
@@ -385,20 +495,19 @@ const createChart = (data) => {
   const dataLength = data.length;
 
   // TÍNH barWidth động theo số cột và chiều rộng khung
-  const containerWidth = chartContainer.value.offsetWidth || 900; // fallback nếu chưa render
-  const spacing = 8; // px
+  const containerWidth = chartContainer.value.offsetWidth || 900;
+  const spacing = 8;
   const totalSpacing = spacing * (dataLength - 1);
   const barWidth = Math.max(
     24,
     Math.floor((containerWidth - totalSpacing) / dataLength)
-  ); // tối thiểu 24px
+  );
 
-  // KHÔNG tạo scrollContainer, chỉ tạo chartDiv
   const chartDiv = document.createElement("div");
   chartDiv.style.cssText = `
     display: flex;
     align-items: end;
-    justify-content: center; // căn giữa các cột
+    justify-content: center;
     height: 350px;
     padding: 20px;
     background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
@@ -415,13 +524,14 @@ const createChart = (data) => {
       align-items: center;
       width: ${barWidth}px;
       min-width: ${barWidth}px;
+      cursor: ${selectedTimeRange.value === 'nam' ? 'pointer' : 'default'};
     `;
 
     const barHeight = Math.max((item.value / maxValue) * 280, 20);
     const valueLabel = document.createElement("div");
 
     if (item.value >= 1000000) {
-      valueLabel.textContent = (item.value / 1000000).toFixed(3) + "K";
+      valueLabel.textContent = (item.value / 1000000).toFixed(1) + "M";
     } else if (item.value >= 1000) {
       valueLabel.textContent = (item.value / 1000).toFixed(0) + "K";
     } else {
@@ -444,7 +554,7 @@ const createChart = (data) => {
       background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
       border-radius: 8px 8px 4px 4px;
       transition: all 0.3s ease;
-      cursor: pointer;
+      cursor: ${selectedTimeRange.value === 'nam' ? 'pointer' : 'default'};
       box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
     `;
 
@@ -452,13 +562,26 @@ const createChart = (data) => {
       bar.style.transform = "scale(1.05) translateY(-5px)";
       bar.style.boxShadow = "0 8px 16px rgba(66, 133, 244, 0.4)";
     });
+    
     bar.addEventListener("mouseleave", () => {
       bar.style.transform = "scale(1) translateY(0)";
       bar.style.boxShadow = "0 2px 8px rgba(66, 133, 244, 0.3)";
     });
 
+    // Add click event for yearly view
+    if (selectedTimeRange.value === 'nam') {
+      bar.addEventListener("click", () => {
+        handleBarClick(parseInt(item.x) - 1); // Convert to 0-based index
+      });
+    }
+
     const xLabel = document.createElement("div");
-    xLabel.textContent = item.x;
+    if (selectedTimeRange.value === 'thang') {
+      xLabel.textContent = `${item.x}`;
+    } else {
+      xLabel.textContent = `T${item.x}`;
+    }
+    
     xLabel.style.cssText = `
       font-size: 12px;
       color: #666;
@@ -475,59 +598,52 @@ const createChart = (data) => {
   chartContainer.value.appendChild(chartDiv);
 };
 
-// Load chart data
-const loadChartData = async (timeRange) => {
-  console.log("Loading chart data for:", timeRange);
+// Load chart data with optional month/year parameters
+const loadChartData = async (timeRange, month = null, year = null) => {
+  console.log("Loading chart data for:", timeRange, "Month:", month, "Year:", year);
 
   try {
     isLoading.value = true;
     debugInfo.value = "Loading data...";
 
-    const endpoint =
-      timeRange === "thang"
-        ? "/ThongKe/DoanhThuThangHienTai"
-        : "/ThongKe/DoanhThuNamHienTai";
-
+    let endpoint, params;
+    
+    if (timeRange === "thang") {
+      endpoint = "/ThongKe/DoanhThuTheoThang";
+      params = {
+        month: month || selectedMonth.value,
+        year: year || selectedYear.value
+      };
+    } else {
+      endpoint = "/ThongKe/DoanhThuNamHienTai";
+      params = {
+        year: year || selectedYear.value
+      };
+    }
     let data;
     try {
-      data = await apiClient.get(endpoint);
-      console.log("API Response:", data);
+      data = await apiClient.get(endpoint, { params });
     } catch (apiError) {
-      console.warn("API failed, using mock data:", apiError);
-      data =
-        timeRange === "thang"
-          ? mockChartData
-          : mockChartData.map((item) => ({
-              ...item,
-              period: `2024-${item.period.replace("T", "")}`,
-            }));
+      data = [];
     }
 
     const formattedData = formatDataForChart(data);
-    // Thêm dòng này để chuẩn hóa đủ cột
     const fullChartData = getFullChartData(formattedData, timeRange);
     chartData.value = fullChartData;
 
-    if (fullChartData.length > 0) {
+    if (fullChartData.length > 0 && fullChartData.some(item => item.value > 0)) {
       await nextTick();
       setTimeout(() => {
         createChart(fullChartData);
       }, 100);
     } else {
+      chartData.value = [];
       debugInfo.value = "No data after formatting";
-      console.warn("No chart data after formatting");
     }
   } catch (error) {
     console.error("Error loading chart data:", error);
     debugInfo.value = `Error: ${error.message}`;
-
-    const formattedData = formatDataForChart(mockChartData);
-    chartData.value = formattedData;
-
-    await nextTick();
-    setTimeout(() => {
-      createChart(formattedData);
-    }, 100);
+    chartData.value = [];
   } finally {
     isLoading.value = false;
   }
@@ -539,21 +655,29 @@ const changeTimeRange = (timeRange) => {
   loadChartData(timeRange);
 };
 
+// Handle month/year change for monthly view
+const onMonthYearChange = () => {
+  loadChartData('thang', selectedMonth.value, selectedYear.value);
+};
+
+// Handle year change for yearly view
+const onYearChange = () => {
+  loadChartData('nam', null, selectedYear.value);
+};
+
 // Load service data for pie chart
 const loadServiceData = async () => {
   console.log("Loading service data...");
 
   try {
     isLoadingService.value = true;
-
     const response = await apiClient.get("/ThongKe/SoLuongDichVu");
     console.log("Service API Response:", response);
 
     if (Array.isArray(response) && response.length > 0) {
       serviceData.value = response;
     } else {
-      console.warn("No service data received, using mock data");
-      serviceData.value = mockServiceData;
+      serviceData.value = [];
     }
 
     if (serviceData.value.length > 0) {
@@ -564,11 +688,7 @@ const loadServiceData = async () => {
     }
   } catch (error) {
     console.error("Error loading service data:", error);
-    serviceData.value = mockServiceData;
-    await nextTick();
-    setTimeout(() => {
-      createPieChart();
-    }, 100);
+    serviceData.value = [];
   } finally {
     isLoadingService.value = false;
   }
@@ -851,6 +971,9 @@ const tinhGioKetThuc = (lich) => {
 onMounted(async () => {
   console.log("Component mounted, initializing...");
 
+  // Initialize years dropdown
+  initializeYears();
+
   try {
     // Load basic stats
     try {
@@ -872,47 +995,17 @@ onMounted(async () => {
       console.warn("Error loading stats, using defaults:", statsError);
     }
 
-    // Load charts
+    // Load charts - mặc định load tháng hiện tại
     await Promise.all([
       loadServiceData(),
       loadProductData(),
-      loadChartData(selectedTimeRange.value),
+      loadChartData(selectedTimeRange.value, selectedMonth.value, selectedYear.value),
     ]);
   } catch (error) {
     console.error("Initialization error:", error);
   }
 });
 
-function getFullChartData(rawData, timeRange) {
-  // Xác định các mốc thời gian cần hiển thị
-  let labels = [];
-  let now = new Date();
-  if (timeRange === "thang") {
-    // Hiển thị đủ ngày trong tháng hiện tại
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for (let d = 1; d <= daysInMonth; d++) {
-      labels.push(d.toString());
-    }
-  } else {
-    // Hiển thị đủ 12 tháng
-    labels = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-  }
-
-  // Chuyển rawData thành map để tra cứu nhanh
-  const dataMap = {};
-  rawData.forEach((item) => {
-    // item.x có thể là ngày/tháng, chuyển về string để so sánh
-    dataMap[item.x.toString()] = item.value;
-  });
-
-  // Tạo mảng dữ liệu đủ các mốc, nếu không có thì gán 0
-  return labels.map((label) => ({
-    x: label,
-    value: dataMap[label] ?? 0,
-  }));
-}
 </script>
 
 <style scoped>
@@ -1003,6 +1096,13 @@ function getFullChartData(rawData, timeRange) {
     border-radius: 8px !important;
     margin-bottom: 5px;
   }
+  .d-flex.gap-3.flex-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .d-flex.gap-2 {
+    margin-bottom: 10px;
+  }
 }
 
 .list-group-item {
@@ -1040,5 +1140,19 @@ function getFullChartData(rawData, timeRange) {
 
 .card-body::-webkit-scrollbar-thumb:hover {
   background: #0b5ed7;
+}
+
+/* Form select styling */
+.form-select-sm {
+  font-size: 0.875rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select-sm:focus {
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 </style>

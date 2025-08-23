@@ -25,11 +25,7 @@
                 v-model="soDienThoai"
                 placeholder="Nhập số điện thoại khách hàng"
                 @input="filterNumeric"
-                @blur="validatePhone"
               />
-              <span v-if="errorMessage" class="error-message">
-                {{ errorMessage }}
-              </span>
             </div>
             <span class="item-count-badge">
               {{ danhSachChon.length }} mục
@@ -131,6 +127,24 @@
                   >
                 </div>
               </div>
+              <div v-if="isSuaLich" class="form-group-inline">
+                <label class="form-label">Chọn khung giờ:</label>
+                <select
+                  class="form-control"
+                  v-model="selectedKhungGio"
+                  @change="capNhatThoiGianLich"
+                >
+                  <option value="" disabled>Chọn khung giờ</option>
+                  <option
+                    v-for="slot in availableSlots"
+                    :key="slot.khungGio"
+                    :value="slot.khungGio"
+                    :disabled="slot.conLai === 0"
+                  >
+                    {{ slot.khungGio }} (Còn {{ slot.conLai }} slot)
+                  </option>
+                </select>
+              </div>
             </div>
 
             <!-- Payment Details -->
@@ -138,21 +152,14 @@
               <!-- Voucher Section -->
               <div class="form-group">
                 <label class="form-label">Mã giảm giá:</label>
-                <div class="voucher-input-group">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="maGiamGia"
-                    placeholder="Nhập mã"
-                  />
-                  <button
-                    class="btn btn-outline-success"
-                    @click="apDungMaGiamGia"
-                  >
-                    Áp dụng
-                  </button>
-                </div>
-                <div v-if="trangThaiGiamGia" class="voucher-status">
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="maGiamGia"
+                  placeholder="Nhập mã"
+                  @input="apDungMaGiamGia"
+                />
+                <div v-if="trangThaiGiamGia" class="voucher-status mt-1">
                   <span
                     :class="{
                       'text-success': trangThaiGiamGia.startsWith('✅'),
@@ -172,21 +179,31 @@
                   class="form-control"
                   v-model="tienKhachDuaHienThi"
                   @keypress="chiNhapSo"
-                  @blur="xuLyNhapTienKhach"
+                  @input="xuLyNhapTienKhach"
                   placeholder="Nhập số tiền"
                 />
                 <div class="change-info">
-                  <div v-if="tienKhachDua < tongTien" class="text-danger">
-                    ❌ Thiếu {{ (tongTien - tienKhachDua).toLocaleString() }} ₫
+                  <div
+                    v-if="tienKhachDua < tongTien && tienKhachDua >= 0"
+                    class="text-danger"
+                  >
+                    ❌ Thiếu
+                    {{ (tongTien - tienKhachDua).toLocaleString("vi-VN") }} ₫
                   </div>
-                  <div v-else class="text-success">
-                    Tiền thối lại:
+                  <div
+                    v-else-if="tienKhachDua >= tongTien"
+                    class="text-success"
+                  >
+                    ✅ Tiền thối lại:
                     <strong
                       >{{
-                        (tienKhachDua - tongTien).toLocaleString()
+                        (tienKhachDua - tongTien).toLocaleString("vi-VN")
                       }}
                       ₫</strong
                     >
+                  </div>
+                  <div v-else class="text-warning">
+                    ⚠ Vui lòng nhập số tiền hợp lệ
                   </div>
                 </div>
               </div>
@@ -380,8 +397,7 @@
                       :key="dv.chiTietDatLichID"
                       class="service-item"
                     >
-                      {{ dv.soLuongDV }} x {{ dv.dichVu.tenDichVu }} -
-                      {{ dv.dichVu.thoiGian }}p -
+                      {{ dv.dichVu.tenDichVu }} - {{ dv.dichVu.thoiGian }}p -
                       {{ dv.dichVu.gia.toLocaleString() }}₫
                     </li>
                   </ul>
@@ -390,6 +406,7 @@
                 <td class="actions-cell">
                   <div class="action-buttons">
                     <button
+                      v-if="!lich.daThanhToan"
                       class="btn btn-sm btn-info"
                       @click="doiTrangThai(lich.datLichID)"
                       title="Đổi trạng thái"
@@ -403,6 +420,14 @@
                       title="Sửa lịch"
                     >
                       <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      v-if="!lich.daThanhToan"
+                      class="btn btn-sm btn-danger"
+                      @click="xoaLich(lich.datLichID)"
+                      title="Xóa lịch"
+                    >
+                      <i class="fas fa-trash"></i>
                     </button>
                   </div>
                 </td>
@@ -442,6 +467,7 @@ import { useRoute } from "vue-router";
 import dayjs from "dayjs";
 import apiClient from "../utils/axiosClient";
 import connection from "../services/bookingService";
+import Swal from "sweetalert2";
 const route = useRoute();
 
 // Reactive data
@@ -457,51 +483,43 @@ const soDienThoai = ref("");
 const ghiChu = ref("");
 const isSuaLich = ref(false);
 const lichDangSua = ref(null);
-const errorMessage = ref("");
 const maGiamGia = ref("");
 const giamGia = ref(0);
 const trangThaiGiamGia = ref("");
 const toasts = ref([]);
+let debounceTimer = null;
+const availableSlots = ref([]);
+const selectedKhungGio = ref("");
+const isLoading = ref(false);
 
 // Toast methods
 const showToast = (message, type = "info") => {
-  const toast = {
-    id: Date.now(),
-    message,
-    type,
-  };
-  toasts.value.push(toast);
-  setTimeout(() => {
-    const index = toasts.value.findIndex((t) => t.id === toast.id);
-    if (index > -1) toasts.value.splice(index, 1);
-  }, 3000);
+  toasts.value.push({ id: Date.now(), message, type });
+  setTimeout(() => toasts.value.shift(), 3000);
 };
 
-const getToastIcon = (type) => {
-  switch (type) {
-    case "success":
-      return "fa-check-circle";
-    case "error":
-      return "fa-exclamation-circle";
-    case "warning":
-      return "fa-exclamation-triangle";
-    default:
-      return "fa-info-circle";
-  }
-};
+const getToastIcon = (type) =>
+  ({
+    success: "fa-check-circle",
+    error: "fa-exclamation-circle",
+    warning: "fa-exclamation-triangle",
+    info: "fa-info-circle",
+  }[type]);
 
 // Phone validation
+// const filterNumeric = (event) => {
+//   let value = event.target.value.replace(/[^0-9]/g, "");
+//   if (value && !value.startsWith("0")) {
+//     value = "0" + value;
+//   }
+//   soDienThoai.value = value;
+//   validatePhone();
+// };
 const filterNumeric = (event) => {
-  soDienThoai.value = event.target.value.replace(/[^0-9]/g, "");
-  validatePhone();
-};
-
-const validatePhone = () => {
-  if (soDienThoai.value.length < 10 || soDienThoai.value.length > 11) {
-    errorMessage.value = "Số điện thoại phải có ít nhất 10 chữ số!";
-  } else {
-    errorMessage.value = "";
-  }
+  let value = event.target.value.replace(/\D/g, ""); // chỉ giữ số
+  if (value.length > 10) value = value.slice(0, 10); // tối đa 10 số
+  if (value && !value.startsWith("0")) value = "0" + value; // bắt buộc số 0 đầu
+  soDienThoai.value = value;
 };
 
 // Money input handling
@@ -512,24 +530,21 @@ const xuLyNhapTienKhach = () => {
 };
 
 const chiNhapSo = (e) => {
-  const char = String.fromCharCode(e.which);
-  if (!/[0-9]/.test(char)) e.preventDefault();
+  if (!/[0-9]/.test(String.fromCharCode(e.which))) e.preventDefault();
 };
 
 // Computed total
-const tongTien = computed(() => {
-  const tongGoc = danhSachChon.value.reduce(
-    (sum, item) => sum + item.thanhTien,
-    0
-  );
-  return tongGoc - giamGia.value;
-});
+const tongTien = computed(
+  () =>
+    danhSachChon.value.reduce((sum, item) => sum + item.thanhTien, 0) -
+    giamGia.value
+);
 
 // Item selection methods
 const chonDichVu = (dv) => {
   const existing = danhSachChon.value.find((x) => x.dichVuID === dv.dichVuID);
   if (existing) {
-    existing.soLuong += 1;
+    existing.soLuong++;
     existing.thanhTien += dv.gia;
   } else {
     danhSachChon.value.push({
@@ -546,7 +561,7 @@ const chonDichVu = (dv) => {
 const chonSanPham = (sp) => {
   const existing = danhSachChon.value.find((x) => x.sanPhamID === sp.sanPhamId);
   if (existing) {
-    existing.soLuong += 1;
+    existing.soLuong++;
     existing.thanhTien += sp.gia;
   } else {
     danhSachChon.value.push({
@@ -562,9 +577,7 @@ const chonSanPham = (sp) => {
 
 const capNhatThanhTien = (index) => {
   const item = danhSachChon.value[index];
-  if (item.soLuong < 1 || isNaN(item.soLuong)) {
-    item.soLuong = 1;
-  }
+  item.soLuong = Math.max(1, item.soLuong || 1);
   item.thanhTien = item.soLuong * item.donGia;
 };
 
@@ -576,24 +589,39 @@ const xoaItem = (index) => {
 
 // Payment methods
 const taoThanhToan = async () => {
-  if (errorMessage.value) {
-    showToast("Vui lòng kiểm tra số điện thoại", "error");
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
     return;
   }
-
-  const tienKhach = hinhThuc.value === "Tiền mặt" ? tienKhachDua.value : null;
-  const tienThoi =
-    hinhThuc.value === "Tiền mặt"
-      ? Math.max(0, tienKhach - tongTien.value)
-      : null;
+  if (isSuaLich.value && lichDangSua.value?.datLichID) {
+    if (lichDangSua.value.trangThai == "Chưa đến")
+      return showToast("khác hàng chưa đến", "error");
+  }
+  isLoading.value = true;
+  Swal.fire({
+    title: "Đang xử lý...",
+    text: "Vui lòng đợi trong giây lát",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
   const data = {
     ngayTao: new Date().toISOString(),
     maGiamGia: maGiamGia.value.toUpperCase(),
     hinhThucThanhToan: hinhThuc.value,
     trangThai: 1,
     tienGiam: giamGia.value,
-    tienKhachDua: tienKhach,
-    tienThoiLai: tienThoi,
+    tienKhachDua: hinhThuc.value === "Tiền mặt" ? tienKhachDua.value : null,
+    tienThoiLai:
+      hinhThuc.value === "Tiền mặt"
+        ? Math.max(0, tienKhachDua.value - tongTien.value)
+        : null,
     nhanVienID: "6c5dad3a-b67c-4ad7-9ac5-ba64b0aabd5f",
     userID: soDienThoai.value,
     chiTietHoaDon: danhSachChon.value.map((item) => ({
@@ -605,36 +633,47 @@ const taoThanhToan = async () => {
   };
 
   try {
-    const response = await apiClient.post("/ThanhToan/tao-hoadon", data);
+    await apiClient.post("/ThanhToan/tao-hoadon", data);
     if (isSuaLich.value && lichDangSua.value?.datLichID) {
       await apiClient.put(
         `/DatLich/capnhat-thanhtoan/${lichDangSua.value.datLichID}`
       );
     }
     showToast("Tạo hóa đơn thành công!", "success");
-    danhSachChon.value = [];
-    tienKhachDua.value = 0;
-    tienKhachDuaHienThi.value = "";
-    hinhThuc.value = "Tiền mặt";
-    localStorage.removeItem("checkoutData");
+    resetForm();
     layDanhSach();
   } catch (err) {
     console.error("Lỗi tạo hóa đơn:", err);
-    showToast("Tạo hóa đơn thất bại. Vui lòng thử lại.", "error");
+    showToast("Tạo hóa đơn thất bại.", "error");
+  } finally {
+    Swal.close();
+    isLoading.value = false;
   }
 };
 
 const taoMaChuyenKhoan = async () => {
-  const items = danhSachChon.value.map((item) => ({
-    name: item.ten,
-    quantity: item.soLuong,
-    amount: item.donGia,
-  }));
-
+  if (!danhSachChon.value.length || !soDienThoai.value.trim()) return;
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  if (isSuaLich.value && lichDangSua.value?.datLichID) {
+    if (lichDangSua.value.trangThai == "Chưa đến")
+      return showToast("khác hàng chưa đến", "error");
+  }
   const payload = {
     totalAmount: tongTien.value,
     description: "Thanh toán hóa đơn",
-    items: items,
+    items: danhSachChon.value.map((item) => ({
+      name: item.ten,
+      quantity: item.soLuong,
+      amount: item.donGia,
+    })),
     cancelUrl: window.location.href,
     returnUrl: window.location.href,
   };
@@ -647,103 +686,37 @@ const taoMaChuyenKhoan = async () => {
   );
 
   try {
-    const response = await apiClient.post("/ThanhToan/create-link", payload);
-    if (response && response.checkoutUrl) {
-      window.location.href = response.checkoutUrl;
-    } else {
-      console.error("Không có checkoutUrl trong phản hồi:", response);
-      showToast("Không thể tạo mã chuyển khoản.", "error");
-    }
+    const { checkoutUrl } = await apiClient.post(
+      "/ThanhToan/create-link",
+      payload
+    );
+    if (checkoutUrl) window.location.href = checkoutUrl;
+    else showToast("Không thể tạo mã chuyển khoản.", "error");
   } catch (error) {
     console.error("Lỗi tạo mã thanh toán:", error);
-    showToast("Có lỗi xảy ra khi tạo mã chuyển khoản.", "error");
+    showToast("Lỗi tạo mã chuyển khoản.", "error");
   }
-};
-
-const sapXepDanhSach = () => {
-  danhSachDatLich.value.sort((a, b) => {
-    const daThanhToanA = a.daThanhToan ?? false;
-    const daThanhToanB = b.daThanhToan ?? false;
-    if (daThanhToanA !== daThanhToanB) {
-      return daThanhToanA ? 1 : -1;
-    }
-    const timeA = new Date(a.thoiGian);
-    const timeB = new Date(b.thoiGian);
-    if (isNaN(timeA) || isNaN(timeB)) {
-      console.error("Invalid date detected:", {
-        timeA: a.thoiGian,
-        timeB: b.thoiGian,
-      });
-      return 0; // Fallback to prevent sorting errors
-    }
-    return timeA - timeB;
-  });
-  console.log(
-    "Danh sách sau sắp xếp:",
-    JSON.stringify(
-      danhSachDatLich.value.map((item) => ({
-        datLichID: item.datLichID,
-        thoiGian: item.thoiGian,
-        daThanhToan: item.daThanhToan,
-      })),
-      null,
-      2
-    )
-  );
-};
-// Data loading
-const layDanhSach = async () => {
-  try {
-    const resDL = await apiClient.get("/DatLich");
-    const today = new Date().toISOString().split("T")[0];
-    danhSachDatLich.value = resDL.filter((item) => {
-      const ngayItem = new Date(item.thoiGian).toISOString().split("T")[0];
-      return ngayItem === today;
-    });
-    sapXepDanhSach();
-    const resDV = await apiClient.get("/DichVu");
-    dichVus.value = resDV;
-    const resSP = await apiClient.get("/Product");
-    sanPhams.value = resSP;
-  } catch (err) {
-    console.error("Lỗi lấy danh sách:", err);
-    showToast("Lỗi tải dữ liệu. Vui lòng thử lại.", "error");
-  }
-};
-
-// Utility functions
-const formatDateTime = (dateStr) => {
-  const local = dateStr.replace("Z", "");
-  const date = new Date(local);
-  return date.toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 };
 
 // Booking management
 const datLich = async () => {
-  if (errorMessage.value) {
-    showToast("Vui lòng kiểm tra số điện thoại.", "warning");
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
     return;
   }
-
   const dichVusSelected = danhSachChon.value
     .filter((item) => item.dichVuID)
-    .map((item) => ({
-      DichVuID: item.dichVuID,
-      SoLuong: item.soLuong,
-    }));
+    .map((item) => ({ DichVuID: item.dichVuID, SoLuong: item.soLuong }));
 
-  if (dichVusSelected.length === 0) {
-    showToast("Vui lòng chọn ít nhất một dịch vụ để đặt lịch.", "warning");
-    return;
-  }
-
-  if (!soDienThoai.value.trim()) {
-    showToast("Vui lòng nhập số điện thoại khách hàng.", "warning");
-    return;
-  }
+  if (!dichVusSelected.length)
+    return showToast("Vui lòng chọn ít nhất một dịch vụ.", "warning");
+  if (!soDienThoai.value.trim())
+    return showToast("Vui lòng nhập số điện thoại.", "warning");
 
   const payload = {
     SoDienThoai: soDienThoai.value,
@@ -754,62 +727,53 @@ const datLich = async () => {
   };
 
   try {
-    const response = await apiClient.post("/DatLich", payload);
+    await apiClient.post("/DatLich", payload);
     showToast("Đặt lịch thành công!", "success");
-    soDienThoai.value = "";
-    ghiChu.value = "";
-    danhSachChon.value = [];
+    resetForm();
     layDanhSach();
   } catch (err) {
     console.error("Lỗi đặt lịch:", err);
-    const errorMsg =
-      err.response?.data || "Đặt lịch thất bại. Vui lòng thử lại.";
-    showToast(errorMsg, "error");
+    showToast(err.response?.data || "Đặt lịch thất bại.", "error");
   }
 };
 
 const capNhatLich = async () => {
-  if (errorMessage.value) {
-    showToast("Vui lòng kiểm tra số điện thoại.", "warning");
+  if (!/^0\d{9}$/.test(soDienThoai.value)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Số điện thoại không hợp lệ",
+      text: "Vui lòng nhập đúng 10 số và bắt đầu bằng 0!",
+      confirmButtonText: "OK",
+    });
     return;
   }
-
   const dichVusSelected = danhSachChon.value
     .filter((item) => item.dichVuID)
-    .map((item) => ({
-      DichVuID: item.dichVuID,
-      SoLuong: item.soLuong,
-    }));
+    .map((item) => ({ DichVuID: item.dichVuID, SoLuong: item.soLuong }));
 
-  if (dichVusSelected.length === 0) {
-    showToast("Vui lòng chọn ít nhất một dịch vụ để cập nhật.", "warning");
-    return;
-  }
+  if (!dichVusSelected.length)
+    return showToast("Vui lòng chọn ít nhất một dịch vụ.", "warning");
+  if (!selectedKhungGio.value)
+    return showToast("Vui lòng chọn khung giờ.", "warning");
+  const ngay = dayjs(lichDangSua.value.thoiGian).format("YYYY-MM-DD");
+  const thoiGianMoi = `${ngay}T${selectedKhungGio.value}:00`;
 
   const payload = {
     SoDienThoai: soDienThoai.value,
-    ThoiGian: lichDangSua.value.thoiGian,
+    ThoiGian: thoiGianMoi,
     GhiChu: ghiChu.value,
     DatTruoc: lichDangSua.value.datTruoc || false,
     DichVus: dichVusSelected,
   };
 
   try {
-    const response = await apiClient.put(
-      `/DatLich/${lichDangSua.value.datLichID}`,
-      payload
-    );
+    await apiClient.put(`/DatLich/${lichDangSua.value.datLichID}`, payload);
     showToast("Cập nhật lịch thành công!", "success");
-    isSuaLich.value = false;
-    lichDangSua.value = null;
-    danhSachChon.value = [];
-    soDienThoai.value = "";
-    ghiChu.value = "";
+    resetForm();
     layDanhSach();
   } catch (err) {
     console.error("Lỗi cập nhật lịch:", err);
-    const errorMsg = err.response?.data || "Cập nhật lịch thất bại.";
-    showToast(errorMsg, "error");
+    showToast(err.response?.data || "Cập nhật lịch thất bại.", "error");
   }
 };
 
@@ -818,7 +782,6 @@ const batDauSuaLich = (lich) => {
   lichDangSua.value = lich;
   soDienThoai.value = lich.soDienThoai;
   ghiChu.value = lich.ghiChu;
-
   danhSachChon.value = lich.chiTietDatLichs.map((ct) => ({
     ten: ct.dichVu.tenDichVu,
     dichVuID: ct.dichVuID,
@@ -826,127 +789,219 @@ const batDauSuaLich = (lich) => {
     donGia: ct.dichVu.gia,
     thanhTien: ct.dichVu.gia * (ct.soLuongDV || 1),
   }));
+  selectedKhungGio.value = dayjs(lich.thoiGian).format("HH:mm");
+  layDanhSachSlot(lich.thoiGian);
   showToast("Đã tải thông tin lịch để chỉnh sửa", "info");
 };
 
 const huySua = () => {
-  isSuaLich.value = false;
-  lichDangSua.value = null;
-  danhSachChon.value = [];
-  soDienThoai.value = "";
-  ghiChu.value = "";
+  resetForm();
   showToast("Đã hủy chỉnh sửa", "info");
 };
 
 const doiTrangThai = async (id) => {
   try {
-    const res = await apiClient.put(`/DatLich/doitrangthai/${id}`);
+    await apiClient.put(`/DatLich/doitrangthai/${id}`);
     showToast("Đã đổi trạng thái lịch hẹn", "success");
     layDanhSach();
   } catch (err) {
+    console.error("Lỗi đổi trạng thái:", err);
     showToast("Lỗi khi đổi trạng thái!", "error");
-    console.error(err);
+  }
+};
+const xoaLich = async (id) => {
+  const result = await Swal.fire({
+    title: "Bạn có chắc chắn?",
+    text: "Lịch này sẽ bị xóa và không thể khôi phục!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Xóa ngay",
+    cancelButtonText: "Hủy",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      isLoading.value = true;
+      Swal.fire({
+        title: "Đang xử lý...",
+        text: "Vui lòng đợi trong giây lát",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+      await apiClient.delete(`/DatLich/${id}`);
+
+      await layDanhSach();
+      showToast("Xóa thành công!", "success");
+    } catch (err) {
+      console.error("Lỗi khi xóa lịch:", err);
+      showToast("Xóa thất bại!", "error");
+    } finally {
+      Swal.close();
+      isLoading.value = false;
+    }
   }
 };
 
-const apDungMaGiamGia = async () => {
-  const code = maGiamGia.value.trim().toUpperCase();
+const apDungMaGiamGia = () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    const code = maGiamGia.value.trim().toUpperCase();
+    giamGia.value = 0;
+    trangThaiGiamGia.value = "";
+    if (!code) return;
+
+    try {
+      const vouchers = await apiClient.get("/Vouchers/status");
+      const voucher = vouchers.find((v) => v.maCode.toUpperCase() === code);
+
+      if (!voucher) return (trangThaiGiamGia.value = "❌ Mã không tồn tại");
+      if (voucher.trangThai !== "true")
+        return (trangThaiGiamGia.value = `❌ Mã không hợp lệ: ${voucher.trangThai}`);
+
+      giamGia.value =
+        voucher.tienGiam < 1
+          ? Math.round(tongTien.value * voucher.tienGiam)
+          : voucher.tienGiam;
+
+      trangThaiGiamGia.value = `✅ Đã áp dụng mã ${voucher.maCode}`;
+      showToast(
+        `Áp dụng mã giảm giá thành công: ${giamGia.value.toLocaleString()}₫`,
+        "success"
+      );
+    } catch (err) {
+      console.error("Lỗi API mã giảm giá:", err);
+      trangThaiGiamGia.value = "❌ Lỗi hệ thống";
+      showToast("Lỗi khi áp dụng mã giảm giá", "error");
+    }
+  }, 300);
+};
+
+const resetForm = () => {
+  isSuaLich.value = false;
+  lichDangSua.value = null;
+  danhSachChon.value = [];
+  soDienThoai.value = "";
+  ghiChu.value = "";
+  tienKhachDua.value = 0;
+  tienKhachDuaHienThi.value = "";
+  hinhThuc.value = "Tiền mặt";
+  maGiamGia.value = "";
   giamGia.value = 0;
   trangThaiGiamGia.value = "";
+  selectedKhungGio.value = "";
+  availableSlots.value = [];
+  localStorage.removeItem("checkoutData");
+};
 
-  if (!code) return;
-
+const layDanhSach = async () => {
   try {
-    const res = await apiClient.get("/Vouchers/status");
-    const vouchers = res;
-    const voucher = vouchers.find((v) => v.maCode.toUpperCase() === code);
+    const today = dayjs().format("YYYY-MM-DD");
 
-    if (!voucher) {
-      trangThaiGiamGia.value = "❌ Mã không tồn tại";
-      return;
-    }
+    const [resDL, resDV, resSP] = await Promise.all([
+      apiClient.get("/DatLich/by-date", { params: { date: today } }),
+      apiClient.get("/DichVu"),
+      apiClient.get("/Product"),
+    ]);
+    danhSachDatLich.value = resDL.sort((a, b) => {
+      const daThanhToanA = a.daThanhToan ?? false;
+      const daThanhToanB = b.daThanhToan ?? false;
+      return daThanhToanA !== daThanhToanB
+        ? daThanhToanA
+          ? 1
+          : -1
+        : new Date(a.thoiGian) - new Date(b.thoiGian);
+    });
 
-    if (voucher.trangThai !== "true") {
-      trangThaiGiamGia.value = `❌ Mã không hợp lệ: ${voucher.trangThai}`;
-      return;
-    }
-
-    if (voucher.tienGiam < 1) {
-      giamGia.value = Math.round(tongTien.value * voucher.tienGiam);
-    } else {
-      giamGia.value = voucher.tienGiam;
-    }
-
-    trangThaiGiamGia.value = `✅ Đã áp dụng mã ${voucher.maCode}`;
-    showToast(
-      `Áp dụng mã giảm giá thành công: ${giamGia.value.toLocaleString()}₫`,
-      "success"
-    );
+    dichVus.value = resDV;
+    sanPhams.value = resSP;
   } catch (err) {
-    console.error("Lỗi API mã giảm giá:", err);
-    trangThaiGiamGia.value = "❌ Lỗi hệ thống";
-    showToast("Lỗi khi áp dụng mã giảm giá", "error");
+    console.error("Lỗi lấy danh sách:", err);
+    showToast("Lỗi tải dữ liệu.", "error");
   }
 };
+
+const formatDateTime = (dateStr) => {
+  return new Date(dateStr.replace("Z", "")).toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const layDanhSachSlot = async (ngay) => {
+  try {
+    const response = await apiClient.get("/DatLich/slots", {
+      params: { ngay: dayjs(ngay).format("YYYY-MM-DD") },
+    });
+    availableSlots.value = response;
+  } catch (err) {
+    console.error("Lỗi lấy danh sách slot:", err);
+    showToast("Không thể tải danh sách khung giờ.", "error");
+  }
+};
+// const capNhatThoiGianLich = () => {
+//   if (selectedKhungGio.value && lichDangSua.value) {
+//     const ngay = dayjs(lichDangSua.value.thoiGian).format("YYYY-MM-DD");
+//     lichDangSua.value.thoiGian = `${ngay}T${selectedKhungGio.value}:00`;
+//   }
+// };
 
 onMounted(async () => {
   try {
-    const status = route.query.status;
+    const { status } = route.query;
     const storedData = localStorage.getItem("checkoutData");
     if (storedData) {
       const parsed = JSON.parse(storedData);
       danhSachChon.value = parsed.danhSachChon;
       hinhThuc.value = parsed.hinhThuc;
-      if (status === "PAID") {
-        await taoThanhToan();
-      }
+      if (status === "PAID") await taoThanhToan();
+      localStorage.removeItem("checkoutData");
     }
-    localStorage.removeItem("checkoutData");
     await layDanhSach();
-
     connection.on("ReceiveBookingNotification", (booking) => {
       const today = dayjs().format("YYYY-MM-DD");
-      const ngayItem = dayjs(booking.thoiGian).format("YYYY-MM-DD");
-      if (ngayItem === today) {
-        // danhSachDatLich.value.push(booking);
-        // sapXepDanhSach();
+      const ngay = booking.thoiGian.slice(0, 10);
+      if (ngay === today) {
         booking.daThanhToan = booking.daThanhToan ?? false;
         booking.thoiGian = dayjs(booking.thoiGian).toISOString();
-
-        danhSachDatLich.value = [...danhSachDatLich.value, booking];
-        sapXepDanhSach();
+        danhSachDatLich.value = [...danhSachDatLich.value, booking].sort(
+          (a, b) => {
+            const daThanhToanA = a.daThanhToan ?? false;
+            const daThanhToanB = b.daThanhToan ?? false;
+            return daThanhToanA !== daThanhToanB
+              ? daThanhToanA
+                ? 1
+                : -1
+              : new Date(a.thoiGian) - new Date(b.thoiGian);
+          }
+        );
         showToast("Có lịch đặt mới!", "success");
-      } else {
-        console.log("Booking không thuộc hôm nay, bỏ qua:", ngayItem);
       }
     });
-
     await connection.start();
-    console.log("✅ SignalR Connected!");
   } catch (err) {
     console.error("Lỗi tải dữ liệu:", err);
-    showToast("Lỗi tải dữ liệu. Vui lòng thử lại.", "error");
+    showToast("Lỗi tải dữ liệu.", "error");
   }
 });
-onBeforeUnmount(() => {
-  if (connection) {
-    connection.stop();
-  }
-});
+
+onBeforeUnmount(() => connection.stop());
 </script>
 
 <style scoped>
 .cashier-management {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #f8f9fa;
   min-height: 100vh;
 }
 
 .header {
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .title {
@@ -981,7 +1036,7 @@ onBeforeUnmount(() => {
 .card-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 20px 25px;
+  padding: 10px 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -997,12 +1052,13 @@ onBeforeUnmount(() => {
 }
 
 .card-body {
-  padding: 25px;
+  padding: 15px;
 }
 
 /* Selected Items Section */
 .selected-items-section {
   min-height: 600px;
+  /* max-height: 600px; */
 }
 
 .header-controls {
@@ -1061,9 +1117,9 @@ onBeforeUnmount(() => {
 }
 
 .selected-items-list {
-  max-height: 300px;
+  max-height: 237px;
   overflow-y: auto;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .selected-item {
@@ -1071,7 +1127,9 @@ onBeforeUnmount(() => {
   grid-template-columns: 1fr auto auto;
   gap: 15px;
   align-items: center;
-  padding: 15px;
+  /* padding: 15px; */
+  padding-left: 25px;
+  padding-right: 25px;
   border: 1px solid #e1e8ed;
   border-radius: 8px;
   margin-bottom: 10px;
@@ -1214,11 +1272,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-.voucher-input-group {
-  display: flex;
-  gap: 10px;
-}
-
 .voucher-status {
   margin-top: 5px;
   font-size: 0.85rem;
@@ -1264,6 +1317,11 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -1279,19 +1337,9 @@ onBeforeUnmount(() => {
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
-}
-
 .btn-success {
   background: linear-gradient(135deg, #27ae60, #229954);
   color: white;
-}
-
-.btn-success:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
 }
 
 .btn-secondary {
@@ -1329,17 +1377,6 @@ onBeforeUnmount(() => {
   background: transparent;
   color: #6c757d;
   border: 1px solid #6c757d;
-}
-
-.btn-outline-success {
-  background: transparent;
-  color: #27ae60;
-  border: 2px solid #27ae60;
-}
-
-.btn-outline-success:hover:not(:disabled) {
-  background: #27ae60;
-  color: white;
 }
 
 /* Tabs Section */
