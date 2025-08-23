@@ -618,6 +618,11 @@ const handleSubmit = async () => {
       return;
     }
     const selectedProduct = productList.value.find(p => p.sanPhamId === formProductId.value);
+    if (formImportPrice.value && formImportPrice.value > selectedProduct.gia) {
+        errorMessage.value = 'Giá nhập không được lớn hơn giá bán.';
+        showToast('Giá nhập không được lớn hơn giá bán.', 'warning');
+        return;
+    }
     if (!formImportPrice.value && selectedProduct?.giaNhap) {
       formImportPrice.value = selectedProduct.giaNhap;
     }

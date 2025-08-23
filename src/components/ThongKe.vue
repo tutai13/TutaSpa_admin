@@ -63,6 +63,53 @@
 
     <!-- Thống kê Thu Chi -->
     <h4 class="mt-5 mb-3">💰 Thống kê Thu - Chi</h4>
+    <div class="filter-controls mb-3">
+      <div class="form-group">
+        <label for="thuChiFilterType">Chọn kiểu thống kê</label>
+        <select
+          id="thuChiFilterType"
+          v-model="thuChiFilterType"
+          @change="layThuChi"
+          class="form-control"
+        >
+          <option value="day">Theo ngày</option>
+          <option value="month">Theo tháng</option>
+          <option value="year">Theo năm</option>
+        </select>
+      </div>
+      <div class="form-group" v-if="thuChiFilterType === 'day'">
+        <label for="selectedDay">Chọn ngày</label>
+        <input
+          type="date"
+          id="selectedDay"
+          v-model="selectedDay"
+          @change="layThuChi"
+          class="form-control"
+        />
+      </div>
+      <div class="form-group" v-if="thuChiFilterType === 'month'">
+        <label for="selectedMonth">Chọn tháng</label>
+        <input
+          type="month"
+          id="selectedMonth"
+          v-model="selectedMonth"
+          @change="layThuChi"
+          class="form-control"
+        />
+      </div>
+      <div class="form-group" v-if="thuChiFilterType === 'year'">
+        <label for="selectedYear">Chọn năm</label>
+        <input
+          type="number"
+          id="selectedYear"
+          v-model.number="selectedYear"
+          min="2000"
+          max="2099"
+          @change="layThuChi"
+          class="form-control"
+        />
+      </div>
+    </div>
     <div class="row">
       <div class="col-md-6">
         <h5>Thu</h5>
@@ -151,15 +198,20 @@
             <td>{{ formatDate(expense.date) }}</td>
             <td>{{ expense.note ?? "—" }}</td>
             <td>
+              <!-- Modified: Use data-bs-toggle to open edit modal like add modal -->
               <button
                 class="btn btn-sm btn-outline-primary me-2"
+                data-bs-toggle="modal"
+                data-bs-target="#editExpenseModal"
                 @click="openEditExpenseModal(expense)"
               >
                 Sửa
               </button>
               <button
                 class="btn btn-sm btn-outline-danger"
-                @click="deleteExpense(expense.expenseId)"
+                @click="selectExpenseToDelete(expense.expenseId)"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteExpenseModal"
               >
                 Xóa
               </button>
@@ -304,6 +356,48 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal xác nhận xóa chi phí -->
+    <div
+      class="modal fade"
+      id="deleteExpenseModal"
+      tabindex="-1"
+      aria-labelledby="deleteExpenseModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteExpenseModalLabel">Xác nhận xóa chi phí</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            Bạn có chắc chắn muốn xóa chi phí này không?
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Không
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="confirmDeleteExpense"
+            >
+              Có
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -328,6 +422,11 @@ const editExpense = ref({
   date: "",
   note: "",
 });
+const thuChiFilterType = ref("month");
+const selectedDay = ref(new Date().toISOString().split("T")[0]);
+const selectedMonth = ref(new Date().toISOString().slice(0, 7));
+const selectedYear = ref(new Date().getFullYear());
+const expenseIdToDelete = ref(null);
 
 // Lấy danh sách hóa đơn
 const layDanhSach = async () => {
@@ -342,9 +441,23 @@ const layDanhSach = async () => {
 // Lấy dữ liệu thu chi
 const layThuChi = async () => {
   try {
-    const res = await apiClient.get("/ThongKe/ThuChi");
-    console.log("Dữ liệu ThuChi:", res); // Debug log
+    let url = "/ThongKe/ThuChi";
+    let params = {};
+    if (thuChiFilterType.value === "day") {
+      url = "/ThongKe/ThuChiByDay";
+      params.day = selectedDay.value;
+    } else if (thuChiFilterType.value === "month") {
+      url = "/ThongKe/ThuChiByMonth";
+      const [year, month] = selectedMonth.value.split("-");
+      params.month = parseInt(month);
+      params.year = parseInt(year);
+    } else if (thuChiFilterType.value === "year") {
+      url = "/ThongKe/ThuChiByYear";
+      params.year = selectedYear.value;
+    }
+    const res = await apiClient.get(url, { params });
     thuChiData.value = res;
+    console.log("Dữ liệu ThuChi:", res);
   } catch (err) {
     console.error("Lỗi lấy dữ liệu thu chi:", err);
   }
@@ -355,6 +468,7 @@ const layDanhSachChiPhi = async () => {
   try {
     const res = await apiClient.get("/ThongKe/Expense");
     expenses.value = res;
+    console.log("Danh sách chi phí:", res); // Debug log
   } catch (err) {
     console.error("Lỗi lấy danh sách chi phí:", err);
   }
@@ -372,7 +486,7 @@ const createExpense = async () => {
       note: "",
     };
     await layDanhSachChiPhi();
-    await layThuChi(); // Cập nhật lại thu chi
+    await layThuChi();
     document.querySelector("#addExpenseModal .btn-close").click();
   } catch (err) {
     console.error("Lỗi khi thêm chi phí:", err);
@@ -380,17 +494,16 @@ const createExpense = async () => {
   }
 };
 
-// Mở modal sửa chi phí
+// Modified: Mở modal sửa chi phí
 const openEditExpenseModal = (expense) => {
   editExpense.value = {
-    expenseId: expense.expenseId,
-    expenseType: expense.expenseType,
-    amount: expense.amount,
-    date: new Date(expense.date).toISOString().split("T")[0],
-    note: expense.note,
+    expenseId: expense.expenseId || 0,
+    expenseType: expense.expenseType || "",
+    amount: expense.amount || 0,
+    date: expense.date ? new Date(expense.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    note: expense.note || "",
   };
-  const modal = new bootstrap.Modal(document.getElementById("editExpenseModal"));
-  modal.show();
+  console.log("editExpense:", editExpense.value); // Debug log
 };
 
 // Cập nhật chi phí
@@ -399,7 +512,7 @@ const updateExpense = async () => {
     await apiClient.put(`/ThongKe/Expense/${editExpense.value.expenseId}`, editExpense.value);
     alert("Cập nhật chi phí thành công");
     await layDanhSachChiPhi();
-    await layThuChi(); // Cập nhật lại thu chi
+    await layThuChi();
     document.querySelector("#editExpenseModal .btn-close").click();
   } catch (err) {
     console.error("Lỗi khi cập nhật chi phí:", err);
@@ -407,19 +520,28 @@ const updateExpense = async () => {
   }
 };
 
+// Chọn chi phí để xóa
+const selectExpenseToDelete = (expenseId) => {
+  expenseIdToDelete.value = expenseId;
+};
+
+// Xác nhận xóa chi phí
+const confirmDeleteExpense = async () => {
+  try {
+    await apiClient.delete(`/ThongKe/Expense/${expenseIdToDelete.value}`);
+    alert("Xóa chi phí thành công");
+    await layDanhSachChiPhi();
+    await layThuChi();
+    document.querySelector("#deleteExpenseModal .btn-close").click();
+  } catch (err) {
+    console.error("Lỗi khi xóa chi phí:", err);
+    alert("Không thể xóa chi phí.");
+  }
+};
+
 // Xóa chi phí
 const deleteExpense = async (expenseId) => {
-  if (confirm("Bạn có chắc muốn xóa chi phí này?")) {
-    try {
-      await apiClient.delete(`/ThongKe/Expense/${expenseId}`);
-      alert("Xóa chi phí thành công");
-      await layDanhSachChiPhi();
-      await layThuChi(); // Cập nhật lại thu chi
-    } catch (err) {
-      console.error("Lỗi khi xóa chi phí:", err);
-      alert("Không thể xóa chi phí.");
-    }
-  }
+  selectExpenseToDelete(expenseId);
 };
 
 // Tải hóa đơn
@@ -428,15 +550,15 @@ const taiHoaDon = async (hoaDonID) => {
     const response = await apiClient.get(`/ThanhToan/xuat-hoadon/${hoaDonID}`, {
       responseType: "blob",
     });
-    const url = window.URL.createObjectURL(new Blob([response]));
+    const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `HoaDon_${hoaDonID}.pdf`);
     document.body.appendChild(link);
     link.click();
     link.remove();
-  } catch (error) {
-    console.error("Lỗi khi tải hóa đơn:", error);
+  } catch (err) {
+    console.error("Lỗi khi tải hóa đơn:", err);
     alert("Không thể tải hóa đơn.");
   }
 };
@@ -463,3 +585,14 @@ onMounted(() => {
   layDanhSachChiPhi();
 });
 </script>
+
+<style scoped>
+.filter-controls {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.filter-controls .form-group {
+  flex: 1;
+}
+</style>
