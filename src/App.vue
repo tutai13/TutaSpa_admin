@@ -249,6 +249,7 @@ onMounted(() => {
     });
 
     registerSignalREvent("UserAssigned", (user) => {
+      console.log("UserAssigned event received:", user);  
       notifications.value.unshift({
         sessionId: user.sessionId,
         type: "assign",
