@@ -143,16 +143,15 @@
           <table class="categories-table">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Tên loại sản phẩm</th>
                 <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="c in filteredCategories" :key="c.loaiSanPhamId" class="category-row">
-                <td class="category-id">
+                <!-- <td class="category-id">
                   <span class="id-badge">{{ c.loaiSanPhamId }}</span>
-                </td>
+                </td> -->
                 <td class="category-name">
                   <div class="name-container">
                     <i class="fas fa-tag"></i>
@@ -196,6 +195,39 @@
         {{ toast.message }}
       </div>
     </div>
+      <div v-if="showConfirmDelete" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Xác nhận xóa</h5>
+              <button
+                type="button"
+                class="btn-close"
+                @click="cancelDelete"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <p>Bạn có muốn xóa loại sản phẩm này không?</p>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                @click="cancelDelete"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger"
+                @click="confirmDelete"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
@@ -215,7 +247,8 @@ const searchKeyword = ref("");
 const toasts = ref([]);
 const fileInput = ref(null);
 const selectedFile = ref(null);
-
+const showConfirmDelete = ref(false);
+const categoryToDelete = ref(null);
 // Computed filtered categories
 const filteredCategories = computed(() => {
   if (!searchKeyword.value.trim()) return categories.value;
@@ -271,6 +304,7 @@ const fetchCategories = async () => {
 const saveCategory = async () => {
   try {
     loading.value = true;
+
     if (isEditing.value) {
       await apiClient.put(`Category/${category.value.loaiSanPhamId}`, category.value);
       showToast('Cập nhật loại sản phẩm thành công!', 'success');
@@ -278,12 +312,21 @@ const saveCategory = async () => {
       await apiClient.post("Category", category.value);
       showToast('Thêm loại sản phẩm thành công!', 'success');
     }
+
     resetForm();
     showAddForm.value = false;
     fetchCategories();
+
   } catch (err) {
     console.error("Lỗi lưu loại sản phẩm:", err);
-    showToast('Lỗi khi lưu loại sản phẩm', 'error');
+
+    // ✅ Bắt lỗi từ backend
+    if (err.response && err.response.data?.message) {
+      showToast(err.response.data.message, "warning");
+    } else {
+      showToast("Loại sản phẩm đã tồn tại!", "error");
+    }
+
   } finally {
     loading.value = false;
   }
@@ -295,19 +338,30 @@ const editCategory = (c) => {
   showAddForm.value = true;
 };
 
-const deleteCategory = async (id) => {
-  if (!confirm("Bạn có chắc muốn xóa loại sản phẩm này?")) return;
+const deleteCategory = (id) => {
+  showConfirmDelete.value = true;
+  categoryToDelete.value = id;
+};
+
+const confirmDelete = async () => {
   try {
     loading.value = true;
-    await apiClient.delete(`Category/${id}`);
-    showToast('Xóa loại sản phẩm thành công!', 'success');
-    fetchCategories();
+    await apiClient.delete(`Category/${categoryToDelete.value}`);
+    showToast("Xóa loại sản phẩm thành công!", "success");
+    await fetchCategories(); // gọi đúng hàm load danh sách loại sản phẩm
   } catch (err) {
-    console.error("Lỗi xóa loại sản phẩm:", err);
-    showToast('Lỗi khi xóa loại sản phẩm', 'error');
+    console.error("Lỗi xóa:", err);
+    showToast("Lỗi khi xóa loại sản phẩm: " + (err.message || "Không xác định"), "error");
   } finally {
     loading.value = false;
+    showConfirmDelete.value = false;
+    categoryToDelete.value = null;
   }
+};
+
+const cancelDelete = () => {
+  showConfirmDelete.value = false;
+  categoryToDelete.value = null;
 };
 
 const resetForm = () => {
@@ -925,24 +979,45 @@ onMounted(fetchCategories);
   }
 }
 
-@media (max-width: 480px) {
-  .table-responsive {
-    font-size: 0.8rem;
-  }
-  
-  .categories-table th,
-  .categories-table td {
-    padding: 8px 6px;
-  }
-  
-  .btn {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .btn-sm {
-    padding: 6px 10px;
-    font-size: 0.8rem;
-  }
+/* Modal luôn hiển thị ở mọi màn hình */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
 }
+
+.modal-dialog {
+  background: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e1e8ed;
+  padding-bottom: 10px;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+
+
 </style>
