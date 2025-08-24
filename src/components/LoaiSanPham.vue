@@ -118,7 +118,7 @@
             </button>
             <i class="fas fa-search search-icon"></i>
           </div>
-          <button @click="fetchCategories" class="btn btn-outline-primary">
+          <button @click="refreshCategories" class="btn btn-outline-primary">
             <i class="fas fa-sync-alt"></i>
             Làm mới
           </button>
@@ -179,6 +179,38 @@
               </tr>
             </tbody>
           </table>
+        <!-- Phân trang -->
+    <div class="pagination">
+      <button
+        class="btn btn-outline-primary"
+        :disabled="currentPage === 1"
+        @click="changePage(currentPage - 1)"
+      >
+        <i class="fas fa-angle-left"></i> Trước
+      </button>
+
+      <span class="page-info">Trang {{ currentPage }} / {{ totalPages }}</span>
+
+      <div class="page-numbers">
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          class="btn btn-sm page-btn"
+          :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'"
+          @click="changePage(page)"
+        >
+          {{ page }}
+        </button>
+      </div>
+
+      <button
+        class="btn btn-outline-primary"
+        :disabled="currentPage === totalPages"
+        @click="changePage(currentPage + 1)"
+      >
+        Sau <i class="fas fa-angle-right"></i>
+      </button>
+    </div>
         </div>
       </div>
     </div>
@@ -287,19 +319,42 @@ const toggleAddForm = () => {
   }
 }
 
-const fetchCategories = async () => {
+const currentPage = ref(1);
+const pageSize = ref(5); // số loại sản phẩm / trang
+const totalItems = ref(0);
+
+const totalPages = computed(() => {
+  return Math.ceil(totalItems.value / pageSize.value);
+});
+
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    fetchCategories(page);
+  }
+};
+
+const fetchCategories = async (page = 1) => {
   try {
     loading.value = true;
-    const res = await apiClient.get("/Category");
-    categories.value = res; // Sử dụng trực tiếp res vì phản hồi là mảng
-    searchKeyword.value = "";
+    const res = await apiClient.get("Category/paged", {
+      params: {
+        page: page,
+        pageSize: pageSize.value,
+        keyword: searchKeyword.value // 🔥 thêm keyword
+      }
+    });
+
+    categories.value = res.items; // danh sách loại sản phẩm trả về từ API
+    totalItems.value = res.totalItems;
+    currentPage.value = res.page;
   } catch (err) {
     console.error("Lỗi tải loại sản phẩm:", err);
-    showToast('Lỗi khi tải danh sách loại sản phẩm', 'error');
+    categories.value = [];
   } finally {
     loading.value = false;
   }
 };
+
 
 const saveCategory = async () => {
   try {
@@ -375,12 +430,21 @@ const resetForm = () => {
 };
 
 const searchCategories = () => {
-  // Lọc cục bộ, không gọi API
+  currentPage.value = 1; // khi tìm kiếm thì quay về trang đầu
+  fetchCategories();
+};
+
+const refreshCategories = () => {
+  searchKeyword.value = "";   // Xóa ô tìm kiếm
+  currentPage.value = 1;      // Quay về trang 1
+  fetchCategories(1);         // Tải lại dữ liệu
 };
 
 const clearSearch = () => {
   searchKeyword.value = "";
+  
 };
+
 
 // Thêm methods cho import Excel
 const handleFileChange = (event) => {
@@ -1017,7 +1081,40 @@ onMounted(fetchCategories);
   font-weight: 600;
   color: #2c3e50;
 }
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px; /* khoảng cách giữa nhóm nút Prev/Next, info và số trang */
+  font-size: 1rem;
+  flex-wrap: wrap; /* nếu nhiều nút thì tự xuống dòng */
+}
 
+.pagination button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 0 4px; /* tạo khoảng cách ngang giữa các nút */
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.pagination button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-weight: 600;
+  color: #2c3e50;
+}
 
 
 </style>
