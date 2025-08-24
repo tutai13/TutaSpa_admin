@@ -503,12 +503,8 @@ const saveDichVu = async () => {
       if (existedDV.loaiDichVuID !== dichVu.value.loaiDichVuID) {
         showToast(`Dịch vụ '${dichVu.value.tenDichVu}' đã tồn tại trong loại khác, vui lòng chọn đúng loại dịch vụ.`, "warning");
         return;
-      } else {
-        showToast("Tên dịch vụ đã tồn tại trong loại này.", "warning");
-        return;
       }
     }
-
     // --- Upload ảnh nếu có ---
     let imageName = dichVu.value.hinhAnh;
     if (selectedImage.value) {
