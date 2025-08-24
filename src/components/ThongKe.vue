@@ -1,68 +1,6 @@
 <template>
   <div>
-    <!-- Danh sách hóa đơn -->
-    <h4 class="mb-3">📋 Danh sách hóa đơn</h4>
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
-        <thead class="table-primary">
-          <tr>
-            <th>#</th>
-            <th>Ngày tạo</th>
-            <th>Tổng tiền</th>
-            <th>Khách đưa</th>
-            <th>Thối lại</th>
-            <th>Hình thức</th>
-            <th>Trạng thái</th>
-            <th>Dịch vụ</th>
-            <th>Mã giảm giá</th>
-            <th>Giá trị giảm</th>
-            <th>Tải hóa đơn</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(hd, index) in danhSachHoaDon" :key="hd.hoaDonID">
-            <td>{{ index + 1 }}</td>
-            <td>{{ formatDateTime(hd.ngayTao) }}</td>
-            <td>{{ hd.tongTien.toLocaleString() }}₫</td>
-            <td>{{ hd.tienKhachDua?.toLocaleString() ?? "—" }}₫</td>
-            <td>{{ hd.tienThoiLai?.toLocaleString() ?? "—" }}₫</td>
-            <td>{{ hd.hinhThucThanhToan }}</td>
-            <td>
-              <span
-                :class="hd.trangThai === 1 ? 'text-success' : 'text-danger'"
-              >
-                {{ hd.trangThai === 1 ? "✔ Hoàn tất" : "⏳ Chờ xử lý" }}
-              </span>
-            </td>
-            <td>
-              <ul class="mb-0 ps-3">
-                <li v-for="ct in hd.chiTietHoaDons" :key="ct.chiTietHoaDonID">
-                  {{ ct.soLuongSP }} x {{ ct.dichVu?.tenDichVu ?? "—" }} -
-                  {{ ct.dichVu?.thoiGian ?? 0 }}p -
-                  {{ ct.thanhTien?.toLocaleString() }}₫
-                </li>
-              </ul>
-            </td>
-            <td>{{ hd.voucher?.maCode ?? "Không có" }}</td>
-            <td>{{ hd.giaTriGiam }}</td>
-            <td>
-              <button
-                class="btn btn-sm btn-outline-primary"
-                @click="taiHoaDon(hd.hoaDonID)"
-              >
-                ⬇️ Tải
-              </button>
-            </td>
-          </tr>
-          <tr v-if="danhSachHoaDon.length === 0">
-            <td colspan="11" class="text-center text-muted">
-              Không có dữ liệu
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
+    
     <!-- Thống kê Thu Chi -->
     <h4 class="mt-5 mb-3">💰 Thống kê Thu - Chi</h4>
     <div class="filter-controls mb-3">
@@ -450,14 +388,7 @@ const selectedYear = ref(new Date().getFullYear());
 const expenseIdToDelete = ref(null);
 
 // Lấy danh sách hóa đơn
-const layDanhSach = async () => {
-  try {
-    const res = await apiClient.get("/ThongKe/thongKeHoaDon");
-    danhSachHoaDon.value = res;
-  } catch (err) {
-    console.error("Lỗi lấy danh sách hóa đơn:", err);
-  }
-};
+
 
 // Lấy dữ liệu thu chi
 const layThuChi = async () => {
@@ -612,7 +543,7 @@ const formatDate = (dateStr) => {
 
 // Khởi tạo dữ liệu khi component được mount
 onMounted(() => {
-  layDanhSach();
+  
   layThuChi();
   layDanhSachChiPhi();
 });
