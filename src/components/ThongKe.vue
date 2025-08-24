@@ -386,7 +386,9 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="deleteExpenseModalLabel">Xác nhận xóa chi phí</h5>
+            <h5 class="modal-title" id="deleteExpenseModalLabel">
+              Xác nhận xóa chi phí
+            </h5>
             <button
               type="button"
               class="btn-close"
@@ -519,7 +521,9 @@ const openEditExpenseModal = (expense) => {
     expenseId: expense.expenseId || 0,
     expenseType: expense.expenseType || "",
     amount: expense.amount || 0,
-    date: expense.date ? new Date(expense.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    date: expense.date
+      ? new Date(expense.date).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
     note: expense.note || "",
   };
 
@@ -529,7 +533,6 @@ const openEditExpenseModal = (expense) => {
     document.getElementById("editExpenseModal")
   );
   modal.show();
-
 };
 
 // Cập nhật chi phí
@@ -615,7 +618,6 @@ onMounted(() => {
 });
 </script>
 
-
 <style scoped>
 .filter-controls {
   display: flex;
@@ -626,4 +628,3 @@ onMounted(() => {
   flex: 1;
 }
 </style>
-
