@@ -168,7 +168,7 @@
           </router-link>
         </template>
 
-        <div class="menu-title">Thống kê</div>
+        <div v-if="authStore.isAdmin" class="menu-title">Thống kê</div>
 
         <!-- Thống kê -->
         <router-link
@@ -181,6 +181,7 @@
           <i class="fas fa-store"></i>
         </router-link>
         <router-link
+          v-if="authStore.isAdmin"
           to="/thongkehoadon"
           class="menu-item"
           exact-active-class="active"
