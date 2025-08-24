@@ -18,10 +18,16 @@ import ThongKe from "../components/ThongKe.vue";
 import ChangePassword from "../components/ChangePassword.vue";
 import ForgotPassword from "../components/ForgotPassword.vue";
 import test from "../components/test.vue";
+import thongkehoadon from "../components/thongkehoadon.vue";
 
 const routes = [
   { path: "/", name: "Dashboard", component: Dashboard },
   { path: "/test", name: "test", component: test },
+  {
+    path: "/thongkehoadon",
+    name: "thongkehoadon",
+    component: thongkehoadon,
+  },
   { path: "/khuyenMai", name: "khuyenMai", component: khuyenMai },
   { path: "/dichVu", name: "dichVu", component: dichVu },
   { path: "/Loaidichvu", name: "Loaidichvu", component: Loaidichvu },

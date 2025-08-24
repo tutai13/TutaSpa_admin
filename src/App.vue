@@ -100,8 +100,7 @@
             exact-active-class="active"
             title="Quản lý dịch vụ"
           >
-            <i class="fas fa-hand-sparkles"></i> 
-
+            <i class="fas fa-hand-sparkles"></i>
           </router-link>
           <router-link
             to="/khuyenMai"
@@ -109,7 +108,7 @@
             exact-active-class="active"
             title="Quản lý Khuyến mãi"
           >
-            <i class="fas fa-tags"></i>  
+            <i class="fas fa-tags"></i>
           </router-link>
           <router-link
             to="/QuanLySanPham"
@@ -117,7 +116,7 @@
             exact-active-class="active"
             title="Quản lý Sản phẩm"
           >
-            <i class="fas fa-pump-soap"></i> 
+            <i class="fas fa-pump-soap"></i>
           </router-link>
           <router-link
             to="/employees"
@@ -135,7 +134,6 @@
           >
             <i class="fas fa-star"></i>
           </router-link>
-          
         </template>
 
         <!-- InventoryManager -->
@@ -170,7 +168,6 @@
           </router-link>
         </template>
 
-
         <div class="menu-title">APPS</div>
 
         <!-- Thống kê -->
@@ -182,6 +179,14 @@
           title="Thống kê"
         >
           <i class="fas fa-store"></i>
+        </router-link>
+        <router-link
+          to="/thongkehoadon"
+          class="menu-item"
+          exact-active-class="active"
+          title="Thống kê hóa đơn"
+        >
+          <i class="fas fa-chart-simple"></i>
         </router-link>
 
         <!-- User Profile -->
@@ -249,7 +254,7 @@ onMounted(() => {
     });
 
     registerSignalREvent("UserAssigned", (user) => {
-      console.log("UserAssigned event received:", user);  
+      console.log("UserAssigned event received:", user);
       notifications.value.unshift({
         sessionId: user.sessionId,
         type: "assign",
@@ -270,7 +275,7 @@ function toggleNotifications() {
 
 async function Logout() {
   try {
-        await authAPI.logout();
+    await authAPI.logout();
     authStore.logout();
 
     localStorage.removeItem("accessToken");
