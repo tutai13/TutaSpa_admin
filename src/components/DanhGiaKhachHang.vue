@@ -186,22 +186,22 @@
               </h6>
               <div class="d-flex align-items-center gap-2">
                 <small class="text-muted">{{ danhSachLoc.length }} kết quả</small>
-                <button 
+                <!-- <button 
                   v-if="starFilter !== 'all'" 
                   @click="starFilter = 'all'" 
                   class="btn btn-outline-secondary btn-sm me-2"
                   title="Xóa lọc sao"
                 >
                   <i class="fas fa-star me-1"></i>Xóa lọc sao
-                </button>
-                <button 
+                </button> -->
+                <!-- <button 
                   v-if="selectedDichVu !== 'all'" 
                   @click="selectedDichVu = 'all'" 
                   class="btn btn-outline-secondary btn-sm"
                   title="Xóa lọc dịch vụ"
                 >
                   <i class="fas fa-times me-1"></i>Xóa lọc
-                </button>
+              </button> -->
               </div>
             </div>
             
@@ -413,6 +413,7 @@
 import { ref, onMounted, computed } from "vue";
 import BarChart from "@/components/BarChart.vue";
 import axiosClient from "../utils/axiosClient";
+import Swal from "sweetalert2";
 
 const danhSach = ref([]);
 const filter = ref("all");
@@ -454,7 +455,7 @@ const showToastMessage = (message, type = "success") => {
 const loadDanhSach = async () => {
   try {
     isLoading.value = true;
-    const res = await axiosClient.get("DanhGia/adminn");
+    const res = await axiosClient.get("DanhGia/admin/all");
     danhSach.value = res;
     updateCharts();
   } catch (err) {
@@ -477,17 +478,41 @@ const resetFilters = () => {
 };
 
 const toggleTrangThai = async (id) => {
-  if (confirm("Bạn có chắc muốn thay đổi trạng thái đánh giá này?")) {
+  const result = await Swal.fire({
+    title: "Xác nhận",
+    text: "Bạn có chắc muốn thay đổi trạng thái đánh giá này?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Có",
+    cancelButtonText: "Hủy",
+  });
+
+  if (result.isConfirmed) {
     try {
       await axiosClient.put(`DanhGia/toggle/${id}`);
       await loadDanhSach();
-      showToastMessage("Đã đổi trạng thái thành công");
+
+      await Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "Đã đổi trạng thái thành công!",
+        showConfirmButton: false,
+        timer: 2000,
+      });
     } catch (err) {
       console.error("Lỗi khi thay đổi trạng thái:", err);
-      showToastMessage("Lỗi khi thay đổi trạng thái", "error");
+
+      await Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Thay đổi trạng thái thất bại!",
+        showConfirmButton: false,
+        timer: 2000,
+      });
     }
   }
 };
+
 
 const formatDate = (dateStr) => new Date(dateStr).toLocaleString("vi-VN");
 
