@@ -168,11 +168,11 @@
           </router-link>
         </template>
 
-        <div class="menu-title">APPS</div>
+        <div class="menu-title">Thống kê</div>
 
         <!-- Thống kê -->
         <router-link
-          v-if="authStore.isAdmin || authStore.isManager"
+          v-if="authStore.isAdmin"
           to="/thongke"
           class="menu-item"
           exact-active-class="active"
@@ -187,16 +187,6 @@
           title="Thống kê hóa đơn"
         >
           <i class="fas fa-chart-simple"></i>
-        </router-link>
-
-        <!-- User Profile -->
-        <router-link
-          to="/apps/profile"
-          class="menu-item"
-          exact-active-class="active"
-          title="User Profile"
-        >
-          <i class="fas fa-user-circle"></i>
         </router-link>
       </div>
     </aside>
