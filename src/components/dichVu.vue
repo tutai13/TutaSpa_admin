@@ -496,7 +496,9 @@ const saveDichVu = async () => {
     const tenNormalized = dichVu.value.tenDichVu.trim().toLowerCase();
 
     const existedDV = allDV.find(
-      x => x.tenDichVu.trim().toLowerCase() === tenNormalized
+      x =>
+        x.tenDichVu.trim().toLowerCase() === tenNormalized &&
+        x.dichVuID !== dichVu.value.dichVuID
     );
 
     if (existedDV) {
