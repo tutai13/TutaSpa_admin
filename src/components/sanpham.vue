@@ -35,7 +35,7 @@
                 type="text"
                 class="search-input"
                 placeholder="Nhập tên sản phẩm..."
-                @input="searchByName"
+                @input="debounceSearch"
               />
               <i class="fas fa-search search-icon"></i>
               <button
@@ -61,6 +61,7 @@
                 class="form-control price-input"
                 placeholder="Giá thấp nhất"
                 min="0"
+                @input="debounceFilter"  
               />
               <span class="price-separator">-</span>
               <input
@@ -69,14 +70,8 @@
                 class="form-control price-input"
                 placeholder="Giá cao nhất"
                 min="0"
+                @input="debounceFilter"   
               />
-              <!-- <button
-                class="btn btn-primary price-filter-btn"
-                @click="filterByPrice"
-              >
-                <i class="fas fa-filter"></i>
-                Lọc
-              </button> -->
             </div>
           </div>
 
@@ -95,6 +90,45 @@
                 {{ cat.tenLoai }}
               </option>
             </select>
+          </div>
+
+          <!-- Filter status display -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-info-circle"></i> Trạng thái lọc
+            </label>
+            <div class="filter-status">
+              <span v-if="hasActiveFilters" class="filter-badge active">
+                <i class="fas fa-filter"></i>
+                Đang lọc ({{ totalItems }} kết quả)
+              </span>
+              <span v-else class="filter-badge">
+                <i class="fas fa-list"></i>
+                Hiển thị tất cả ({{ totalItems }} sản phẩm)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active filters display -->
+        <div v-if="hasActiveFilters" class="active-filters">
+          <h4>Bộ lọc đang áp dụng:</h4>
+          <div class="filter-tags">
+            <span v-if="searchName" class="filter-tag">
+              <i class="fas fa-search"></i>
+              Tên: "{{ searchName }}"
+              <button @click="clearSearchFilter" class="remove-filter">×</button>
+            </span>
+            <span v-if="priceMin || priceMax" class="filter-tag">
+              <i class="fas fa-dollar-sign"></i>
+              Giá: {{ formatPriceRange() }}
+              <button @click="clearPriceFilter" class="remove-filter">×</button>
+            </span>
+            <span v-if="selectedCategory" class="filter-tag">
+              <i class="fas fa-tag"></i>
+              Danh mục: {{ getCategoryName(selectedCategory) }}
+              <button @click="clearCategoryFilter" class="remove-filter">×</button>
+            </span>
           </div>
         </div>
       </div>
@@ -247,7 +281,7 @@
           <h2 class="section-title">
             <i class="fas fa-list"></i>
             Danh sách sản phẩm
-            <span class="badge">{{ filteredProducts.length }}</span>
+            <span class="badge">{{ totalItems }}</span>
           </h2>
           <div class="view-controls">
             <button
@@ -281,9 +315,13 @@
           </div>
 
           <!-- Empty State -->
-          <div v-else-if="!filteredProducts.length" class="empty-state">
+          <div v-else-if="!products.length" class="empty-state">
             <i class="fas fa-box-open"></i>
-            <p>Không có sản phẩm nào</p>
+            <p>{{ hasActiveFilters ? 'Không tìm thấy sản phẩm phù hợp với bộ lọc' : 'Không có sản phẩm nào' }}</p>
+            <button v-if="hasActiveFilters" @click="resetAndRefresh" class="btn btn-primary">
+              <i class="fas fa-times"></i>
+              Xóa bộ lọc
+            </button>
           </div>
 
           <!-- Table View -->
@@ -291,10 +329,6 @@
             <table class="products-table">
               <thead>
                 <tr>
-                  <!-- <th>
-                    <i class="fas fa-hashtag"></i>
-                    ID
-                  </th> --> 
                   <th>
                     <i class="fas fa-tag"></i>
                     Tên sản phẩm
@@ -303,7 +337,6 @@
                     <i class="fas fa-image"></i>
                     Ảnh
                   </th>
-                 
                   <th>
                     <i class="fas fa-money-bill-wave"></i>
                     Giá
@@ -328,12 +361,11 @@
               </thead>
               <tbody>
                 <tr
-                  v-for="sp in filteredProducts"
+                  v-for="sp in products"
                   :key="sp.sanPhamId"
                   class="product-row"
                 >
-                  <!-- <td class="product-id">{{ sp.sanPhamId }}</td> -->
-                   <td class="product-name">
+                  <td class="product-name">
                     <div class="name-container">
                       <strong>{{ sp.tenSP }}</strong>
                     </div>
@@ -342,7 +374,7 @@
                     <div class="image-container">
                       <img
                         v-if="sp.hinhAnh"
-                        :src="imageUrl + sp.hinhAnh"
+                        :src="sp.hinhAnh"
                         :alt="sp.tenSP"
                         @error="handleImageError"
                       />
@@ -352,7 +384,6 @@
                       </div>
                     </div>
                   </td>
-                  
                   <td class="product-price">
                     <span class="price-value">
                       {{ formatPrice(sp.gia) }}
@@ -402,13 +433,13 @@
           <!-- Grid View -->
           <div v-else class="products-grid">
             <div
-              v-for="sp in filteredProducts"
+              v-for="sp in products"
               :key="sp.sanPhamId"
               class="product-card"
             >
               <div class="product-card-image">
                 <img
-                  :src="imageUrl + (sp.hinhAnh ?? 'holder')"
+                  :src="sp.hinhAnh || ''"
                   :alt="sp.tenSP"
                   @error="handleImageError"
                 />
@@ -446,6 +477,39 @@
               </div>
             </div>
           </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="pagination-container">
+            <button
+              class="btn btn-outline-primary"
+              :disabled="currentPage === 1"
+              @click="changePage(currentPage - 1)"
+            >
+              <i class="fas fa-angle-left"></i> Trước
+            </button>
+
+            <span class="page-info">Trang {{ currentPage }} / {{ totalPages }}</span>
+
+            <div class="page-numbers">
+              <button
+                v-for="page in getVisiblePages()"
+                :key="page"
+                class="btn btn-sm page-btn"
+                :class="page === currentPage ? 'btn-primary' : 'btn-outline-secondary'"
+                @click="changePage(page)"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <button
+              class="btn btn-outline-primary"
+              :disabled="currentPage === totalPages"
+              @click="changePage(currentPage + 1)"
+            >
+              Sau <i class="fas fa-angle-right"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -461,38 +525,38 @@
         <i class="fas" :class="getToastIcon(toast.type)"></i>
         {{ toast.message }}
       </div>
+    </div>
 
-      <!-- Confirmation Dialog -->
-      <div v-if="showConfirmDelete" class="modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Xác nhận xóa</h5>
-              <button
-                type="button"
-                class="btn-close"
-                @click="cancelDelete"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <p>Bạn có muốn xóa sản phẩm này không?</p>
-            </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                @click="cancelDelete"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                class="btn btn-danger"
-                @click="confirmDelete"
-              >
-                OK
-              </button>
-            </div>
+    <!-- Confirmation Dialog -->
+    <div v-if="showConfirmDelete" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Xác nhận xóa</h5>
+            <button
+              type="button"
+              class="btn-close"
+              @click="cancelDelete"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Bạn có muốn xóa sản phẩm này không?</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="cancelDelete"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="confirmDelete"
+            >
+              Xóa
+            </button>
           </div>
         </div>
       </div>
@@ -504,9 +568,6 @@
 import { ref, computed, onMounted } from "vue";
 import apiClient from "../utils/axiosClient";
 
-
-
-
 // Reactive data
 const products = ref([]);
 const categories = ref([]);
@@ -517,8 +578,6 @@ const toasts = ref([]);
 const showConfirmDelete = ref(false);
 const productToDelete = ref(null);
 
-const imageUrl = import.meta.env.VITE_BASE_URL.replace("/api", "/images/");
-console.log("Image URL:", imageUrl);
 // Form data
 const product = ref({
   productId: 0,
@@ -531,30 +590,28 @@ const product = ref({
 
 // Filters
 const searchName = ref("");
-const priceMin = ref(null); // Thay đổi thành null để xử lý khi để trống
-const priceMax = ref(null); // Thay đổi thành null để xử lý khi để trống
+const priceMin = ref(null);
+const priceMax = ref(null);
 const selectedCategory = ref("");
+
+// Debounce timers
+let searchTimer = null;
+let filterTimer = null;
 
 // Image handling
 const imageFile = ref(null);
 const imagePreview = ref(null);
 
-// Computed filtered products
-const filteredProducts = computed(() => {
-  return products.value.filter((sp) => {
-    const matchesName = !searchName.value || sp.tenSP.toLowerCase().includes(searchName.value.toLowerCase());
-    const matchesPrice = 
-      (!priceMin.value || sp.gia >= priceMin.value) && // Nếu priceMin trống, bỏ qua điều kiện
-      (!priceMax.value || sp.gia <= priceMax.value);  // Nếu priceMax trống, bỏ qua điều kiện
-    const matchesCategory = !selectedCategory.value || sp.loaiSanPhamId === Number(selectedCategory.value);
-    return matchesName && matchesPrice && matchesCategory;
-  });
-});
+// Pagination
+const currentPage = ref(1);
+const pageSize = ref(5);
+const totalItems = ref(0);
+const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value));
 
-const getImageURl =  (image) => {
-  console.log("Image URL:", imageUrl + image);
-  return imageUrl + image;
-} 
+// Computed properties
+const hasActiveFilters = computed(() => {
+  return searchName.value || priceMin.value || priceMax.value || selectedCategory.value;
+});
 
 // Methods
 const showToast = (message, type = "info") => {
@@ -581,6 +638,68 @@ const getToastIcon = (type) => {
     default:
       return "fa-info-circle";
   }
+};
+
+// Debounce search function
+const debounceSearch = () => {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    currentPage.value = 1; // Reset to first page when searching
+    fetchProducts(1);
+  }, 500); // Wait 500ms after user stops typing
+};
+
+// Debounce filter function
+const debounceFilter = () => {
+  if (filterTimer) clearTimeout(filterTimer);
+  filterTimer = setTimeout(() => {
+    currentPage.value = 1; // Reset to first page when filtering
+    fetchProducts(1);
+  }, 300); // Wait 300ms after user stops typing
+};
+
+// Clear individual filters
+const clearSearchFilter = () => {
+  searchName.value = "";
+  currentPage.value = 1; // Reset về trang 1
+  fetchProducts(1);
+};
+
+const clearPriceFilter = () => {
+  priceMin.value = null;
+  priceMax.value = null;
+  currentPage.value = 1; // Reset về trang 1
+  fetchProducts(1);
+};
+
+const clearCategoryFilter = () => {
+  selectedCategory.value = "";
+  currentPage.value = 1; // Reset về trang 1
+  fetchProducts(1);
+};
+
+// Format price range for display
+const formatPriceRange = () => {
+  if (priceMin.value && priceMax.value) {
+    return `${formatPrice(priceMin.value)} - ${formatPrice(priceMax.value)}`;
+  } else if (priceMin.value) {
+    return `Từ ${formatPrice(priceMin.value)}`;
+  } else if (priceMax.value) {
+    return `Đến ${formatPrice(priceMax.value)}`;
+  }
+  return "";
+};
+
+// Get visible page numbers for pagination
+const getVisiblePages = () => {
+  const pages = [];
+  const start = Math.max(1, currentPage.value - 2);
+  const end = Math.min(totalPages.value, start + 4);
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
 };
 
 const toggleEditForm = () => {
@@ -626,15 +745,53 @@ const getCategoryName = (categoryId) => {
   return category ? category.tenLoai : "Không xác định";
 };
 
-const fetchProducts = async () => {
+// Fetch products with improved error handling
+const fetchProducts = async (page = 1) => {
   try {
     loading.value = true;
-    const res = await apiClient.get("Product");
-    products.value = res;
+    
+    // Build parameters object - đảm bảo đúng với backend API
+    const params = {
+      page,
+      pageSize: pageSize.value
+    };
+    
+    // Add filters only if they have values
+    if (searchName.value && searchName.value.trim()) {
+      params.keyword = searchName.value.trim();
+    }
+    
+    if (priceMin.value !== null && priceMin.value !== "") {
+      params.minPrice = priceMin.value;
+    }
+    
+    if (priceMax.value !== null && priceMax.value !== "") {
+      params.maxPrice = priceMax.value;
+    }
+    
+    if (selectedCategory.value && selectedCategory.value !== "") {
+      params.categoryId = parseInt(selectedCategory.value); // Đảm bảo là integer
+    }
+
+    console.log("Fetching with params:", params); // Debug log
+
+    const res = await apiClient.get("Product/paged", { params });
+
+    // Cập nhật theo cấu trúc response từ backend (PascalCase)
+    products.value = res.Items || res.items || [];
+    totalItems.value = res.TotalItems || res.totalItems || 0;
+    currentPage.value = res.Page || res.page || 1;
+    
+    // Show toast if filters are applied and no results found
+    if (hasActiveFilters.value && products.value.length === 0) {
+      showToast("Không tìm thấy sản phẩm phù hợp với bộ lọc", "info");
+    }
+    
   } catch (err) {
     console.error("Lỗi tải sản phẩm:", err);
-    showToast("Lỗi khi tải danh sách sản phẩm: " + (err.message || "Không xác định"), "error");
     products.value = [];
+    totalItems.value = 0;
+    showToast("Lỗi khi tải danh sách sản phẩm: " + (err.message || "Không xác định"), "error");
   } finally {
     loading.value = false;
   }
@@ -642,74 +799,49 @@ const fetchProducts = async () => {
 
 const fetchCategories = async () => {
   try {
-    loading.value = true;
     const res = await apiClient.get("category");
     categories.value = res;
   } catch (err) {
     console.error("Fetch categories error:", err);
     showToast("Lỗi khi tải danh sách danh mục: " + (err.message || "Không xác định"), "error");
-  } finally {
-    loading.value = false;
   }
 };
 
-const searchByName = () => {
-  // Lọc cục bộ dựa trên tên sản phẩm (đã sử dụng computed)
-};
-
+// Filter functions
 const clearSearch = () => {
   searchName.value = "";
-};
-
-const filterByPrice = () => {
-  if (priceMin && priceMax && priceMin > priceMax) {
-    showToast("Giá thấp nhất không được lớn hơn giá cao nhất", "warning");
-    return;
-  }
-  // Lọc cục bộ dựa trên giá (đã sử dụng computed)
+  currentPage.value = 1;
+  fetchProducts(1);
 };
 
 const filterByCategory = () => {
-  // Lọc cục bộ dựa trên danh mục (đã sử dụng computed)
+  currentPage.value = 1;
+  fetchProducts(1);
 };
 
 const resetAndRefresh = async () => {
   searchName.value = "";
-  priceMin.value = null; // Đặt lại về null thay vì 0
-  priceMax.value = null; // Đặt lại về null thay vì 100000000
+  priceMin.value = null;
+  priceMax.value = null;
   selectedCategory.value = "";
-  await fetchProducts();
+  currentPage.value = 1;
+  await fetchProducts(1);
+  showToast("Đã xóa tất cả bộ lọc", "success");
 };
 
-const saveProduct = async () => {
-  try {
-    loading.value = true;
-    const formData = new FormData();
-    formData.append("productName", product.value.productName);
-    formData.append("sellingPrice", product.value.price);
-    formData.append("description", product.value.description);
-    formData.append("categoryId", product.value.categoryId);
-    if (imageFile.value) {
-      formData.append("image", imageFile.value);
-    }
-
-    const url = `Product/${product.value.productId || ""}`;
-    const method = product.value.productId ? "put" : "post";
-
-    await apiClient({ url, method, data: formData, headers: { "Content-Type": "multipart/form-data" } });
-    showToast("Cập nhật sản phẩm thành công!", "success");
-
-    resetForm();
-    await fetchProducts();
-    showEditForm.value = false;
-  } catch (err) {
-    console.error("Lỗi lưu sản phẩm:", err);
-    showToast("Lỗi khi lưu sản phẩm: " + (err.message || "Không xác định"), "error");
-  } finally {
-    loading.value = false;
+// Pagination
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+    fetchProducts(page);
   }
 };
 
+
+
+// Thêm biến để lưu giá gốc
+const originalPrice = ref(null);
+
+// Sửa hàm editProduct để lưu giá gốc
 const editProduct = (sp) => {
   product.value = {
     productId: sp.sanPhamId,
@@ -719,10 +851,80 @@ const editProduct = (sp) => {
     description: sp.moTa,
     categoryId: sp.loaiSanPhamId,
   };
+  originalPrice.value = sp.gia; // Lưu giá gốc
   imagePreview.value = sp.hinhAnh || null;
   imageFile.value = null;
   showEditForm.value = true;
 };
+
+// Sửa hàm saveProduct
+const saveProduct = async () => {
+  try {
+    loading.value = true;
+    const formData = new FormData();
+    
+    // Chỉ thêm các field có dữ liệu mới (không rỗng, không null, không undefined)
+    if (product.value.productName && product.value.productName.trim()) {
+      formData.append("productName", product.value.productName.trim());
+    }
+    
+    // Luôn gửi giá nếu có giá trị (cho phép giá = 0)
+    if (product.value.price != null) {
+      formData.append("sellingPrice", product.value.price); // Sửa key thành "sellingPrice"
+    }
+    
+    // Đối với mô tả, chỉ cập nhật nếu có nội dung (cho phép cập nhật thành rỗng)
+    if (product.value.description !== null && product.value.description !== undefined) {
+      formData.append("description", product.value.description);
+    }
+    
+    // Đối với danh mục, chỉ cập nhật nếu đã chọn danh mục mới
+    if (product.value.categoryId) {
+      formData.append("categoryId", product.value.categoryId);
+    }
+    
+    // Chỉ thêm ảnh mới nếu có chọn file mới
+    if (imageFile.value) {
+      formData.append("image", imageFile.value);
+    }
+
+    // Debug FormData
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    // Kiểm tra xem có dữ liệu nào để cập nhật không
+    let hasDataToUpdate = false;
+    for (let pair of formData.entries()) {
+      hasDataToUpdate = true;
+      break;
+    }
+    
+    if (!hasDataToUpdate) {
+      showToast("Không có dữ liệu mới để cập nhật!", "warning");
+      return;
+    }
+
+    const url = `Product/${product.value.productId}`;
+    
+    await apiClient.put(url, formData, { 
+      headers: { "Content-Type": "multipart/form-data" } 
+    });
+    
+    showToast("Cập nhật sản phẩm thành công!", "success");
+
+    resetForm();
+    await fetchProducts(currentPage.value); // Keep current page
+    showEditForm.value = false;
+    
+  } catch (err) {
+    console.error("Lỗi lưu sản phẩm:", err);
+    showToast("Lỗi khi lưu sản phẩm: " + (err.response?.data?.message || err.message || "Không xác định"), "error");
+  } finally {
+    loading.value = false;
+  }
+};
+
 
 const deleteProduct = (id) => {
   showConfirmDelete.value = true;
@@ -734,7 +936,13 @@ const confirmDelete = async () => {
     loading.value = true;
     await apiClient.delete(`Product/${productToDelete.value}`);
     showToast("Xóa sản phẩm thành công!", "success");
-    await fetchProducts();
+    
+    // If current page becomes empty after deletion, go to previous page
+    if (products.value.length === 1 && currentPage.value > 1) {
+      await fetchProducts(currentPage.value - 1);
+    } else {
+      await fetchProducts(currentPage.value);
+    }
   } catch (err) {
     console.error("Lỗi xóa:", err);
     showToast("Lỗi khi xóa sản phẩm: " + (err.message || "Không xác định"), "error");
@@ -774,7 +982,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Giữ nguyên style từ phiên bản cũ */
+/* Base styles */
 .product-management {
   max-width: 1400px;
   margin: 0 auto;
@@ -946,6 +1154,11 @@ onMounted(async () => {
   display: inline-block;
 }
 
+.clear-search:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
 .price-filter-group {
   display: flex;
   align-items: center;
@@ -959,10 +1172,86 @@ onMounted(async () => {
 .price-separator {
   font-weight: bold;
   font-size: 1.2rem;
+  color: #7f8c8d;
 }
 
-.price-filter-btn {
-  padding: 10px 16px;
+/* Filter Status */
+.filter-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: #ecf0f1;
+  color: #7f8c8d;
+}
+
+.filter-badge.active {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+/* Active Filters */
+.active-filters {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.active-filters h4 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #495057;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e9ecef;
+  color: #495057;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  border: 1px solid #ced4da;
+}
+
+.filter-tag i {
+  color: #6c757d;
+}
+
+.remove-filter {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.remove-filter:hover {
+  background: #dc3545;
+  color: white;
 }
 
 /* Toast Notification */
@@ -1021,12 +1310,17 @@ onMounted(async () => {
 }
 
 /* Table styles */
+.table-responsive {
+  overflow-x: auto;
+}
+
 .products-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
   border-radius: 10px;
   overflow: hidden;
+  min-width: 800px;
 }
 
 .products-table th,
@@ -1041,10 +1335,16 @@ onMounted(async () => {
   background: #f7f9fb;
   font-weight: 600;
   color: #34495e;
+  white-space: nowrap;
 }
 
 .products-table tr:hover {
   background: #f0f8ff;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
 }
 
 .image-container img {
@@ -1055,9 +1355,22 @@ onMounted(async () => {
 }
 
 .no-image {
-  text-align: center;
-  font-size: 0.85rem;
-  color: #7f8c8d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: #f8f9fa;
+  border: 1px dashed #dee2e6;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.no-image i {
+  font-size: 1.2rem;
+  margin-bottom: 2px;
 }
 
 .quantity-badge {
@@ -1089,31 +1402,44 @@ onMounted(async () => {
   color: #2c3e50;
 }
 
+.price-value {
+  font-weight: 600;
+  color: #e67e22;
+}
+
+.description-text {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Grid view */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
 .product-card {
   background: white;
   border: 1px solid #e1e8ed;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .product-card-image {
   position: relative;
-  height: 180px;
+  height: 200px;
   overflow: hidden;
 }
 
@@ -1121,15 +1447,6 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.no-image-placeholder {
-  background: #ecf0f1;
-  color: #7f8c8d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
 }
 
 .product-overlay {
@@ -1147,23 +1464,26 @@ onMounted(async () => {
 }
 
 .product-card-content {
-  padding: 15px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  flex-grow: 1;
 }
 
 .product-card-title {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #2c3e50;
   margin: 0;
+  line-height: 1.3;
 }
 
 .product-card-price {
   color: #e67e22;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  margin: 0;
 }
 
 .product-card-info {
@@ -1171,55 +1491,126 @@ onMounted(async () => {
   justify-content: space-between;
   font-size: 0.85rem;
   color: #7f8c8d;
+  margin: 8px 0;
+}
+
+.quantity-info,
+.category-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .product-card-description {
   font-size: 0.9rem;
   color: #34495e;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 /* Loading and Empty state */
 .loading-state,
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 50px 20px;
   color: #7f8c8d;
   font-size: 1.1rem;
 }
 
-.empty-state i {
-  font-size: 2.5rem;
+.loading-state i {
+  font-size: 2rem;
   margin-bottom: 10px;
 }
 
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: #bdc3c7;
+}
+
+.view-controls {
+  display: flex;
+  gap: 5px;
+}
+
 .view-controls .btn {
-  margin-left: 10px;
+  border-radius: 6px;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.page-info {
+  font-weight: 500;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  min-width: 40px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-start;
 }
 
 .btn {
-  padding: 12px 24px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   transition: all 0.3s ease;
   text-decoration: none;
+  min-height: 36px;
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  min-height: 32px;
 }
 
 .btn-primary {
@@ -1228,8 +1619,8 @@ onMounted(async () => {
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .btn-success {
@@ -1238,8 +1629,8 @@ onMounted(async () => {
 }
 
 .btn-success:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
 .btn-secondary {
@@ -1249,6 +1640,11 @@ onMounted(async () => {
 
 .btn-info {
   background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
 }
 
@@ -1268,10 +1664,18 @@ onMounted(async () => {
   color: white;
 }
 
-.action-buttons .btn i {
-  pointer-events: none;
+.btn-outline-secondary {
+  background: transparent;
+  color: #6c757d;
+  border: 2px solid #6c757d;
 }
 
+.btn-outline-secondary:hover:not(:disabled) {
+  background: #6c757d;
+  color: white;
+}
+
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
@@ -1287,27 +1691,29 @@ onMounted(async () => {
 
 .modal-dialog {
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   width: 400px;
   max-width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .modal-content {
-  padding: 20px;
+  padding: 0;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20px 25px;
   border-bottom: 1px solid #e1e8ed;
-  padding-bottom: 10px;
 }
 
 .modal-title {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: #2c3e50;
+  margin: 0;
 }
 
 .btn-close {
@@ -1316,29 +1722,185 @@ onMounted(async () => {
   font-size: 1.5rem;
   color: #7f8c8d;
   cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.btn-close:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
 }
 
 .modal-body {
-  padding: 20px 0;
-  color: #34495e;
+  padding: 25px;
+  color: #495057;
+  line-height: 1.5;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  padding: 20px 25px;
   border-top: 1px solid #e1e8ed;
-  padding-top: 10px;
 }
 
-/* Thêm style cho nút tìm kiếm và lọc danh mục */
-.search-btn {
-  margin-top: 10px;
-  width: 100%;
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 
-.category-filter-btn {
-  margin-top: 10px;
+/* Image Upload */
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  max-width: 200px;
+}
+
+.file-upload-label:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 200px;
+}
+
+.image-preview img {
   width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e1e8ed;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.remove-image-btn:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-management {
+    padding: 15px;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pagination-container {
+    gap: 8px;
+  }
+  
+  .page-numbers {
+    gap: 2px;
+  }
+  
+  .btn {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .modal-dialog {
+    margin: 20px;
+    width: auto;
+  }
+  
+  .card-header {
+    padding: 15px 20px;
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  .filter-tags {
+    justify-content: center;
+  }
+  
+  .active-filters {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-controls {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .price-filter-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .price-separator {
+    text-align: center;
+  }
 }
 </style>
