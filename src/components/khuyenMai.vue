@@ -266,9 +266,9 @@
                 <td class="voucher-status">
                   <span 
                     class="status-badge"
-                    :class="getStatusClass(v.ngayBatDau, v.ngayKetThuc)"
+                    :class="getStatusClass(v.ngayBatDau, v.ngayKetThuc, v.soLuong)"
                   >
-                    {{ getVoucherStatus(v.ngayBatDau, v.ngayKetThuc) }}
+                    {{ getVoucherStatus(v.ngayBatDau, v.ngayKetThuc, v.soLuong) }}
                   </span>
                 </td>
                 <td class="voucher-actions">
@@ -399,7 +399,7 @@ const isExpired = (dateString) => {
   return endDate < today
 }
 
-const getVoucherStatus = (startDate, endDate) => {
+const getVoucherStatus = (startDate, endDate, soLuong) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -410,15 +410,17 @@ const getVoucherStatus = (startDate, endDate) => {
 
   if (start > today) return "Chưa bắt đầu"
   if (end < today) return "Hết hạn"
+  if (soLuong === 0) return "Hết số lượng"
   return "Còn hạn"
 }
 
-const getStatusClass = (startDate, endDate) => {
-  const status = getVoucherStatus(startDate, endDate)
+const getStatusClass = (startDate, endDate, soLuong) => {
+  const status = getVoucherStatus(startDate, endDate, soLuong)
   switch (status) {
     case 'Chưa bắt đầu': return 'pending'
     case 'Còn hạn': return 'active'
     case 'Hết hạn': return 'expired'
+    case 'Hết số lượng': return 'outofstock'
     default: return 'pending'
   }
 }
@@ -453,7 +455,7 @@ const saveVoucher = async () => {
   const ngayBatDauDate = new Date(voucher.ngayBatDau)
   const ngayKetThucDate = new Date(voucher.ngayKetThuc)
   const today = new Date()
-  today.setHours(0, 0, 0, 0) // reset giờ để so sánh chỉ theo ngày
+  today.setHours(0, 0, 0, 0)
 
   if (!voucher.ngayBatDau || !voucher.ngayKetThuc) {
     showToast("Vui lòng nhập đủ ngày bắt đầu và ngày kết thúc.", 'warning')
@@ -472,6 +474,12 @@ const saveVoucher = async () => {
 
   if (!voucher.voHan && voucher.soLuong < 1) {
     showToast("Số lượng phải lớn hơn hoặc bằng 1.", 'warning')
+    return
+  }
+
+  // ✅ Kiểm tra nếu là kiểu phần trăm thì không vượt quá 100
+  if (voucher.kieuGiamGia === "0" && voucher.giaTriGiam > 100) {
+    showToast("Giá trị giảm (%) không được lớn hơn 100.", 'warning')
     return
   }
 
@@ -1346,6 +1354,10 @@ onMounted(() => {
 .status-badge.expired {
   background: linear-gradient(135deg, #ff8a80 0%, #ffcdd2 100%);
   color: #721c24;
+}
+.status-badge.outofstock {
+  background: linear-gradient(135deg, #e53935 0%, #f5b7b1 100%);
+  color: #ffffff;
 }
 
 .action-buttons {
