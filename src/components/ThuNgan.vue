@@ -600,7 +600,7 @@ const taoThanhToan = async () => {
   }
   if (isSuaLich.value && lichDangSua.value?.datLichID) {
     if (lichDangSua.value.trangThai == "Chưa đến")
-      return showToast("khác hàng chưa đến", "error");
+      return showToast("khách hàng chưa đến", "error");
   }
   isLoading.value = true;
   Swal.fire({
@@ -664,7 +664,7 @@ const taoMaChuyenKhoan = async () => {
   }
   if (isSuaLich.value && lichDangSua.value?.datLichID) {
     if (lichDangSua.value.trangThai == "Chưa đến")
-      return showToast("khác hàng chưa đến", "error");
+      return showToast("khách hàng chưa đến", "error");
   }
   const payload = {
     totalAmount: tongTien.value,
