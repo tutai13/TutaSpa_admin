@@ -56,14 +56,6 @@
             <li>
               <a
                 class="dropdown-item d-flex align-items-center gap-2 text-secondary"
-                href="/profile"
-              >
-                <i class="fas fa-user fs-6"></i> Thông tin tài khoản
-              </a>
-            </li>
-            <li>
-              <a
-                class="dropdown-item d-flex align-items-center gap-2 text-secondary"
                 href="/ChangePassword"
               >
                 <i class="fas fa-envelope fs-6"></i> Đổi mật khẩu
