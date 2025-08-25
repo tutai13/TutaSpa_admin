@@ -462,28 +462,30 @@ const importCategory = async () => {
   formData.append("file", selectedFile.value);
 
   try {
+    // ⭐ Lưu tổng số loại sản phẩm trước khi import
+    const oldTotal = totalItems.value;
+
     const res = await apiClient.post("/Category/import-productss", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
     const categoryCount = res?.data?.categoryCount || 0;
 
-    // Lấy danh sách loại sản phẩm trước khi import
-    const oldCategories = [...categories.value];
+    // ⭐ Gọi lại fetchCategories để cập nhật tổng số mới (tạm ở trang hiện tại)
+    await fetchCategories(currentPage.value);
 
-    // Tải lại danh sách loại sản phẩm
-    await fetchCategories();
+    // ⭐ Lấy tổng mới và tính số trang cuối
+    const newTotal = totalItems.value;
+    const lastPage = Math.ceil(newTotal / pageSize.value);
 
-    // So sánh để xác định số lượng loại sản phẩm mới
-    const newCategories = categories.value.filter(
-      (newCat) => !oldCategories.some((oldCat) => oldCat.loaiSanPhamId === newCat.loaiSanPhamId)
-    );
-    const newCategoryCount = newCategories.length;
+    // ⭐ Nhảy tới trang cuối để thấy category mới
+    await fetchCategories(lastPage);
 
-    // Sử dụng categoryCount từ server làm số loại mới, nhưng xác nhận với so sánh
-    const finalNewCount = categoryCount > 0 ? categoryCount : newCategoryCount;
+    // ⭐ Tính số loại sản phẩm mới thêm
+    const diff = newTotal - oldTotal;
+    const finalNewCount = categoryCount > 0 ? categoryCount : diff;
 
-    // Xử lý thông báo
+    // Thông báo
     let message = "";
     if (finalNewCount > 0) {
       message = `Thêm thành công ${finalNewCount} loại sản phẩm mới từ Excel. Các loại sản phẩm đã tồn tại được bỏ qua.`;
@@ -492,6 +494,8 @@ const importCategory = async () => {
     }
 
     showToast(message, "success");
+
+    // Reset file input
     selectedFile.value = null;
     if (fileInput.value) fileInput.value.value = "";
   } catch (error) {
