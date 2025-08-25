@@ -682,6 +682,7 @@ const taoMaChuyenKhoan = async () => {
     JSON.stringify({
       danhSachChon: danhSachChon.value,
       hinhThuc: hinhThuc.value,
+      soDienThoai: soDienThoai.value,
     })
   );
 
@@ -957,6 +958,7 @@ onMounted(async () => {
       const parsed = JSON.parse(storedData);
       danhSachChon.value = parsed.danhSachChon;
       hinhThuc.value = parsed.hinhThuc;
+      soDienThoai.value = parsed.soDienThoai;
       if (status === "PAID") await taoThanhToan();
       localStorage.removeItem("checkoutData");
     }
